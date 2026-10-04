@@ -5,6 +5,18 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-04
+
+### Added
+- 发布安全(两步走):内容创建未指定 `--status` 时**显式按草稿**创建(不再依赖服务端默认);新增 `posts` / `pages` / `content` 的 `publish <id>` 与 `unpublish <id>`。
+- `export <id> --file <文件>` 导出原始正文、`import <id> --from-file <文件>` 从文件导入正文,便于安全改版式。
+- 草稿/待审等非公开状态的内容写操作会回显**后台编辑/预览链接**;`--dry-run` 显示结果状态(如 `将创建 posts(status=draft)`)。
+- 非阻断风险提示(stderr,`--yes` 或 `--quiet` 静默):修改**已发布内容**的正文(附 `wpops revisions restore` 回滚命令)、`settings update`、菜单位置绑定与删除菜单。
+
+### Changed
+- README / 内置 skill 增加“发布安全(两步走)”、`revisions` 回滚,以及页面构建器(Elementor/SiteOrigin 等)不要用 REST 改 `post_content` 的注意事项。
+- 版本 `0.2.0` → `0.3.0`。
+
 ## [0.2.0] - 2026-10-04
 
 ### Added
@@ -59,7 +71,8 @@
 - 内置 agent skill(`skills/wpops/SKILL.md`)。
 - 配置目录支持 `WPOPS_HOME` 覆盖。
 
-[Unreleased]: https://github.com/qnnp-me/wpops/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/qnnp-me/wpops/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/qnnp-me/wpops/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/qnnp-me/wpops/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/qnnp-me/wpops/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/qnnp-me/wpops/releases/tag/v0.1.0

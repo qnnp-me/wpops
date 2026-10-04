@@ -24,11 +24,12 @@ description: Use when managing a WordPress site through wpops, the zero-dependen
 ## 安全流程(必须遵守)
 1. 首次操作某站先跑 `wpops doctor`(检查连接与权限;失败返回非 0)。
 2. 任何写操作先加 `--dry-run` 预览(`delete` 的预览不需要 `--force`;真正删除才加 `--force`)。
-3. `--all` 的**写操作必须加 `--yes`**,否则会被拒绝。
-4. 需要程序化解析输出时加 `--json`;要投影/表格用 `--fields a,b` / `--csv` / `--table`。
-5. 应用密码绝不写进命令、日志或对话。
-6. 破坏性操作(`delete --force`、分类/用户/菜单项/插件删除)先确认目标存在且正确。
-7. 退出码:`0` 成功;`2` 用法/参数错误(stderr 会给用法与 `--help` 提示);`1` 运行期错误(HTTP/网络/配置)。脚本据此判断成败,不要只看有没有输出。
+3. **内容默认草稿**:创建不带 `--status` 即草稿,不会直接上线;发布用显式 `publish`(`unpublish` 下线)。修改已发布内容会先提示并给出 `wpops revisions restore` 回滚;`--yes` 可静默。改版式的安全流程:先建**草稿副本**预览(命令回显后台编辑链接),满意后再 `update` 原页。
+4. `--all` 的**写操作必须加 `--yes`**,否则会被拒绝。
+5. 需要程序化解析输出时加 `--json`;要投影/表格用 `--fields a,b` / `--csv` / `--table`。
+6. 应用密码绝不写进命令、日志或对话。
+7. 破坏性操作(`delete --force`、分类/用户/菜单项/插件删除)先确认目标存在且正确。页面构建器(Elementor 等)布局存在插件 meta,不要用 REST 改其 `post_content`。
+8. 退出码:`0` 成功;`2` 用法/参数错误(stderr 会给用法与 `--help` 提示);`1` 运行期错误(HTTP/网络/配置)。脚本据此判断成败,不要只看有没有输出。
 
 ## 现查现用(不要背细节)
 - `wpops <组> --help`、`wpops help <组> [动作]` — 该组动作与参数(**首选**)。
@@ -41,7 +42,7 @@ description: Use when managing a WordPress site through wpops, the zero-dependen
 内置:`doctor`(连接体检) · `me`(当前用户) · `setup`(配置站点) · `sites`(站点档案) · `install-skill` · `completion` · `commands`(命令清单)。
 
 内容与结构:
-- `posts` / `pages` — 文章/页面增删改查。
+- `posts` / `pages` — 文章/页面增删改查;**默认草稿**、`publish`/`unpublish`、`export`/`import`(改版式)、`--dry-run` 预览。
 - `content <rest_base>` / `terms <rest_base>` — 任意 `show_in_rest` 的 CPT / 自定义分类。
 - `media` — 媒体列出/上传/URL 导入(`sideload`)/图像编辑(`edit-image` 裁剪旋转)/更新/删除。
 - `categories` / `tags` — 分类/标签。

@@ -115,15 +115,19 @@ node bin/wpops.js doctor
 > **退出码**:`0` 成功;`2` 用法/参数错误(stderr 打印错误 + 精简用法 + `--help` 提示);`1` 运行期错误(HTTP/网络/配置)。`--help` 始终走 stdout 且为 `0`。
 
 ```
-# 内容
+# 内容(默认存草稿,发布是独立动作——见下方"发布安全")
 wpops posts  list [--per-page 10] [--page 2] [--status draft] [--search 关键词]
                  [--orderby date] [--order desc] [--categories 1,2] [--tags 3]
                  [--author 1] [--after 2026-01-01] [--before 2026-12-31] [--json]
 wpops posts  get <id>
-wpops posts  create --title "标题" --content "正文" [--status draft] [--categories 1,2] [--tags 3] [--featured-media 44]
+wpops posts  create --title "标题" --content "正文" [--categories 1,2] [--tags 3]   # 未给 --status 即草稿
 wpops posts  create --title "标题" --from-file ./post.md --status draft
-wpops posts  update <id> --title "新标题" [--status publish] [--featured-media 0]
-wpops posts  delete <id> [--force]        # 默认进回收站
+wpops posts  export <id> --file post.html              # 导出正文,本地改排版
+wpops posts  update <id> --from-file post.html --dry-run   # 先预览,再真正应用(下面这行)
+wpops posts  update <id> --from-file post.html
+wpops posts  publish <id>                              # 显式发布
+wpops posts  unpublish <id>                            # 下线为草稿
+wpops posts  delete <id> [--force]                     # 默认进回收站
 wpops pages  ...                          # 同样的子命令
 wpops me
 
@@ -229,10 +233,19 @@ wpops raw POST /wp-json/wp/v2/comments --data '{"post":1,"content":"hi"}'
 
 # 安全开关
 wpops posts delete 12 --dry-run                     # 只预览,不执行(所有写命令都支持)
+wpops posts update 12 --from-file post.html --dry-run
 wpops --all posts delete 12 --dry-run               # 跨站预览
 wpops --all plugins list                            # 读操作无需确认
 wpops --all plugins activate akismet/akismet --yes  # 写操作必须 --yes
 ```
+
+### 发布安全(两步走)
+
+- **创建默认草稿**,不会直接上线;发布是独立动作 `wpops posts publish <id>`(页面/CPT 同理),下线用 `unpublish <id>`。
+- 修改**已发布**内容的正文时,会先在 stderr 提示并给出修订回滚命令(加 `--yes` 可静默);`settings` / 菜单位置等 live 变更同样会提示。
+- 改版式/长文的安全流程:`export` 导出正文 → 本地编辑 → 建**草稿副本**预览(回显后台编辑链接)→ `update --from-file` 应用到原页 → 不满意用 `revisions restore` 回滚。
+- **页面构建器注意**:Elementor / SiteOrigin / Divi 等把布局存在插件 meta 里,直接改 REST 的 `post_content` 会**弄坏页面**;这类页面请在构建器 UI 里改,wpops 只用于体检/备份/回滚。
+- WP 的**前端草稿预览**依赖登录态,应用密码在浏览器里用不了;可靠入口是回显的**后台编辑/预览链接**。
 
 ## 4. 多站点
 

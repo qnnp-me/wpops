@@ -43,7 +43,14 @@ test('CLI:--help → 退出码 0,帮助走 stdout', () => {
   const r = run(['posts', '--help']);
   assert.equal(r.status, 0);
   assert.match(r.stdout, /文章/);
+  assert.match(r.stdout, /publish/);
   assert.equal(r.stderr, '');
+});
+
+test('CLI:publish 缺 id → 退出码 2', () => {
+  const r = run(['posts', 'publish']);
+  assert.equal(r.status, 2);
+  assert.match(r.stderr, /缺少必需参数/);
 });
 
 test('CLI:raw GET 带 --data → 退出码 2(用法错误)', () => {

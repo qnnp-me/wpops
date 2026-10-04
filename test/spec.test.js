@@ -22,6 +22,10 @@ test('spec:isMutation 覆盖组、别名与特殊组', () => {
   assert.equal(isMutation('post', 'delete'), true);          // 别名
   assert.equal(isMutation('global-style', 'update'), true);  // 别名
   assert.equal(isMutation('revision', 'list'), false);
+  assert.equal(isMutation('posts', 'publish'), true);
+  assert.equal(isMutation('pages', 'unpublish'), true);
+  assert.equal(isMutation('pages', 'import'), true);
+  assert.equal(isMutation('posts', 'export'), false);
   assert.equal(isMutation('batch', 'anything'), true);
   assert.equal(isMutation('raw', 'GET'), false);
   assert.equal(isMutation('raw', 'POST'), true);
@@ -36,7 +40,11 @@ test('spec:manifest 覆盖所有组,字段齐全', () => {
   const posts = m.groups.find((g) => g.name === 'posts');
   assert.deepEqual(posts.aliases, ['post']);
   assert.ok(posts.actions.includes('create'));
+  assert.ok(posts.actions.includes('publish'));
+  assert.ok(posts.actions.includes('export'));
   assert.ok(posts.mutating.includes('delete'));
+  assert.ok(posts.mutating.includes('publish'));
+  assert.ok(!posts.mutating.includes('export'));
 });
 
 test('spec:completionWords 含组名与别名', () => {

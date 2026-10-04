@@ -3,9 +3,12 @@ import assert from 'node:assert/strict';
 import { parseDotenv } from '../lib/env.js';
 import { configProblems, WpError } from '../lib/client.js';
 import { parseArgs, isMutation } from '../lib/args.js';
+import { readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import {
   deleteMenuItem, createMenuItem, listMenus, listMenuItems, listContent,
-  editMediaImage, sideloadMedia,
+  editMediaImage, sideloadMedia, createContent, updateContent, setContentStatus, exportContent,
 } from '../lib/commands.js';
 import { parseJson } from '../lib/util.js';
 
@@ -110,6 +113,106 @@ test('listMenuItems/listContent:列表实际调用 client.request(路径/方法�
   assert.equal(calls[0].opts.query.menus, '190');
   assert.equal(calls[1].method, 'GET');
   assert.equal(calls[1].path, '/wp-json/wp/v2/posts');
+});
+
+test('createContent:未指定 --status 时显式按草稿创建', async () => {
+  const calls = [];
+  const client = {
+    root: 'https://e',
+    request: async (m, p, o) => {
+      calls.push({ m, p, o });
+      return { data: { id: 1, status: 'draft', title: { rendered: 'x' }, link: 'https://e/?p=1' } };
+    },
+  };
+  const log = console.log;
+  console.log = () => {};
+  try {
+    await createContent(client, 'posts', { title: 'x', content: 'y' });
+  } finally {
+    console.log = log;
+  }
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].m, 'POST');
+  assert.equal(calls[0].o.body.status, 'draft');
+});
+
+test('updateContent:改已发布内容先提示;--yes 跳过预检与提示', async () => {
+  const originalLog = console.log;
+  const originalErr = console.error;
+  console.log = () => {};
+
+  // 默认:预检 GET 发现 publish → 警告(GET + POST)
+  const calls = [];
+  const errs = [];
+  const client = {
+    root: 'https://e',
+    request: async (m) => {
+      calls.push(m);
+      if (m === 'GET') return { data: { id: 1, status: 'publish' } };
+      return { data: { id: 1, status: 'publish', title: { rendered: 'x' } } };
+    },
+  };
+  console.error = (...a) => errs.push(a.join(' '));
+  try {
+    await updateContent(client, 'pages', 1, { content: 'new' });
+  } finally {
+    console.log = originalLog;
+    console.error = originalErr;
+  }
+  assert.deepEqual(calls, ['GET', 'POST']);
+  assert.ok(errs.some((l) => /已发布内容/.test(l)));
+
+  // --yes:跳过预检,不警告
+  const calls2 = [];
+  const errs2 = [];
+  const client2 = {
+    root: 'https://e',
+    request: async (m) => {
+      calls2.push(m);
+      return { data: { id: 1, status: 'publish', title: { rendered: 'x' } } };
+    },
+  };
+  console.log = () => {};
+  console.error = (...a) => errs2.push(a.join(' '));
+  try {
+    await updateContent(client2, 'pages', 1, { content: 'new', yes: true });
+  } finally {
+    console.log = originalLog;
+    console.error = originalErr;
+  }
+  assert.deepEqual(calls2, ['POST']);
+  assert.equal(errs2.length, 0);
+});
+
+test('setContentStatus:publish/unpublish dry-run 不发请求', async () => {
+  const client = {
+    root: 'https://e',
+    request: async () => {
+      throw new Error('不应发请求');
+    },
+  };
+  const log = console.log;
+  console.log = () => {};
+  try {
+    await setContentStatus(client, 'posts', 5, 'publish', { 'dry-run': true });
+    await setContentStatus(client, 'posts', 5, 'draft', { 'dry-run': true });
+  } finally {
+    console.log = log;
+  }
+});
+
+test('exportContent:把 content.raw 写到 --file', async () => {
+  const client = { request: async () => ({ data: { id: 5, content: { raw: '<p>hi</p>' } } }) };
+  const file = join(tmpdir(), `wpops-export-${process.pid}-${Date.now()}.html`);
+  const log = console.log;
+  console.log = () => {};
+  try {
+    await exportContent(client, 'pages', 5, { file });
+  } finally {
+    console.log = log;
+  }
+  assert.equal(readFileSync(file, 'utf8'), '<p>hi</p>');
+  rmSync(file, { force: true });
 });
 
 test('media:sideload 需要 --url;edit-image/sideload dry-run 不发请求', async () => {
