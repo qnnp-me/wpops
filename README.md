@@ -23,8 +23,8 @@ WordPress REST 操作工具。只依赖 Node 内置能力(无第三方包),用�
 **最快:一条命令装好(含 skill)**
 
 ```powershell
-npm i -g wpops     # 装 CLI;postinstall 会自动把 skill 装到 ~/.agents/skills/wpops
-wpops setup        # 交互式配置站点:问 URL / 用户名 / 应用密码,写 sites/<名字>.env 并自动体检
+npm i -g wpops     # 装 CLI(无 postinstall,不会被 pnpm 等的「构建脚本确认」拦住)
+wpops setup        # 配置站点 + 自动装好内置 skill(写到 ~/.agents/skills/wpops)
 ```
 
 第二条是配置站点(密码必须你亲自输入,不回显)。之后即可 `wpops posts list` 等。
@@ -60,9 +60,9 @@ curl -fsSL https://raw.githubusercontent.com/qnnp-me/wpops/main/install.sh | sh 
 npm publish
 ```
 
-> 凭据不进仓库 / 包:`sites/*.env` 与 `.env` 已忽略,且 `package.json` 的 `files`
-> 白名单不含 `sites/`。每台机器各自 `wpops setup`,工具与 skill 都不携带密钥。
-> `WPOPS_SKIP_SKILL=1 npm i -g wpops` 可跳过自动装 skill;`wpops install-skill` 可手动补装。
+> 凭据不进仓库 / 包:配置默认写在**用户目录**(见「1. 配置」),`package.json` 的 `files`
+> 白名单也不含它。每台机器各自 `wpops setup`,工具与 skill 都不携带密钥。
+> `WPOPS_SKIP_SKILL=1` 可跳过装 skill;`wpops install-skill` 可手动装/刷新。安装不再用 postinstall,免得被 pnpm 等包管理器的脚本确认拦住。
 
 ### 本机(开发) vs 其他机器(使用)
 
@@ -88,15 +88,13 @@ WP_APP_PASSWORD=xxxx xxxx xxxx xxxx xxxx xxxx
 
 > `sites/*.env` 已在 `.gitignore` 中,不会被提交。
 
-**配置位置**:默认读**包目录**下的 `.env` / `sites/`(git clone 就在仓库里)。
-若用 `npm i -g wpops` 全局安装,建议设环境变量 `WPOPS_HOME` 指向固定目录,
-把配置放那里,升级/重装不会丢:
+**配置位置**:默认在**用户级稳定目录**,升级/重装不会丢:
 
-```powershell
-# 例如(Windows)
-setx WPOPS_HOME "%USERPROFILE%\.config\wpops"
-# 然后把 sites\<名字>.env 放到该目录下
-```
+- Windows:`%APPDATA%\wpops`(即 `C:\Users\<你>\AppData\Roaming\wpops`)
+- macOS/Linux:`$XDG_CONFIG_HOME/wpops` 或 `~/.config/wpops`
+
+可用环境变量 **`WPOPS_HOME`** 覆盖(开发时想放仓库内,指向仓库即可)。
+旧版本把配置放在**包目录**里、升级会被清掉;wpops 首次运行会自动把旧配置**迁移**到上面的用户目录,旧文件保留、可自行删除。
 
 ## 2. 先体检
 
@@ -249,12 +247,12 @@ wpops --all plugins activate akismet/akismet --yes  # 写操作必须 --yes
 
 ## 4. 多站点
 
-所有站点都放在 `sites/`,一个站点一个文件:
+所有站点都放在**配置目录**的 `sites/` 下,一个站点一个文件(默认配置目录见「1. 配置」,如 Windows 的 `%APPDATA%\wpops`):
 
 ```
-App\wpops\
+%APPDATA%\wpops\        (macOS/Linux:~/.config/wpops/)
 └── sites\
-    ├── qnnp.env          ← 站点:qnnp.me
+    ├── qnnp.me.env      ← 站点:qnnp.me
     ├── blog-a.env
     └── blog-b.env
 ```

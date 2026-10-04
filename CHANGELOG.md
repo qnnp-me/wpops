@@ -5,6 +5,14 @@
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-05
+
+### Changed
+- **配置目录默认改到用户级稳定目录**(Windows `%APPDATA%\wpops`,其他 `$XDG_CONFIG_HOME/wpops` 或 `~/.config/wpops`)——不再默认放包目录,升级/重装不再丢配置。`WPOPS_HOME` 仍可覆盖。
+- 首次运行自动**迁移**旧版包目录内的 `.env` / `sites/*.env` 到新目录(旧文件保留);unix 下收紧配置权限(目录 0700 / 文件 0600)。
+- **移除 `postinstall`**:安装不再触发包管理器的「构建脚本/脚本确认」(pnpm 等);内置 skill 改为 `wpops setup` 安装 + 首次运行时静默刷新。
+- 新增 `AGENTS.md`(仓库贡献者指引)。
+
 ## [0.3.1] - 2026-10-05
 
 ### Changed

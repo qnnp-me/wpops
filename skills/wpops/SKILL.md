@@ -11,9 +11,9 @@ license: MIT
 本 skill 自洽,不依赖其他 skill;需要精确细节时**现查现用**(见下)。
 
 ## 安装与位置
-- 全局命令 `wpops`(`npm i -g wpops` 安装;postinstall 会顺带装好本 skill)。
+- 全局命令 `wpops`(`npm i -g wpops` 安装)。内置 skill 由 `wpops setup` 安装,首次运行也会按需自动刷新。
 - 未安装时也可:`npx wpops ...`。
-- 配置目录:默认包目录下的 `sites/`;设了 `WPOPS_HOME` 则读 `$WPOPS_HOME/sites/`。
+- 配置目录:默认在用户级稳定目录(Windows `%APPDATA%\wpops`,其他 `~/.config/wpops`),升级不丢;`WPOPS_HOME` 可覆盖。旧版放在包目录的配置会在首次运行时自动迁移。
 - 凭据:`sites/<名字>.env`。**不要读取、不要打印其中的应用密码。**
 - 首次配置:`wpops setup`(交互式写入凭据并自动体检)。
 

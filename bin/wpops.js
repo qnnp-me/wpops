@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 import { existsSync, readFileSync, writeFileSync, rmSync, renameSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { loadEnv, listSites, configHome } from '../lib/env.js';
+import { loadEnv, listSites, configHome, migrateLegacyConfig } from '../lib/env.js';
 import { WpError } from '../lib/client.js';
 import { UsageError } from '../lib/errors.js';
 import { parseArgs, isMutation } from '../lib/args.js';
-import { installSkill } from '../lib/skill.js';
+import { installSkill, skillStale } from '../lib/skill.js';
 import { configureOutput } from '../lib/util.js';
 import { runOne } from '../lib/run.js';
 import { generalHelp, groupHelp, commandsJson, usageHint } from '../lib/help.js';
@@ -176,6 +176,26 @@ async function main() {
     }
     console.log(generalHelp(version()));
     return;
+  }
+
+  // 首次运行:把旧版「包目录内」的配置迁到稳定目录,并静默刷新内置 skill。
+  // best-effort;不污染 --json(提示走 stderr),--quiet 静默;测试环境跳过。
+  if (!process.env.NODE_TEST_CONTEXT) {
+    try {
+      const moved = migrateLegacyConfig();
+      if (moved && !flags.quiet) {
+        console.error(
+          `注意:已把 ${moved} 个旧配置从包目录迁移到 ${configHome()}(以后升级不再丢;旧文件仍在,可自行删除)`,
+        );
+      }
+    } catch {
+      // 忽略
+    }
+    try {
+      if (skillStale()) installSkill({ quiet: true });
+    } catch {
+      // 忽略
+    }
   }
 
   if (group === 'sites') {
