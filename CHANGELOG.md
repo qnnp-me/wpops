@@ -19,6 +19,9 @@
   - `comments create`;`plugins delete <plugin> --force`。
   - `abilities`(list/get/run)、`health`(list/<test>)、`batch`(仅 POST/PUT/PATCH/DELETE)。
 - CLI 能力:`--all-pages` 自动翻页;`--fields` / `--csv` / `--table` 输出投影;`--quiet`;`--output <文件>`;`--site a,b`;`--timeout` / `--retries`;`sites show|rm|rename`;`completion bash|zsh|fish|powershell`;`help <组>`。
+- 单一事实来源 `lib/spec.js`:组/动作/写操作/别名一处声明,派生 `wpops help`、`wpops <组> --help`、`wpops commands --json`、`--all` 写操作护栏(isMutation)与 shell 补全,避免文档与代码漂移。
+- `wpops commands --json`:机器可读命令清单(组/动作/是否写操作/全局开关),供 agent 现查现用。
+- 命令分发抽到 `lib/run.js`(导出可测试的 `dispatch`);新增 spec/help/dispatch 一致性测试,任何组或别名漏分发都会测试失败。
 - 所有菜单写命令支持 `--dry-run`;`--all` 护栏识别菜单与所有新写操作。
 - 注:`/menus`、`/menu-items` 由站点插件提供;`abilities`、`health` 也需对应插件。
 
@@ -29,7 +32,8 @@
 - `batch` 明确拒绝 GET(核心 `/batch/v1` 只支持 POST/PUT/PATCH/DELETE),并兼容裸数组与 `{"requests":[...]}` 两种写法。
 
 ### Changed
-- README 命令清单/能力表与内置 skill 速查补充上述用法,并说明 `--dry-run` 预览与 `--force` 的关系。
+- 内置 skill 改为**自洽薄索引**:只保留安全流程、能力索引与"现查现用"指引,不再引用其他 skill;精确字段改为运行时向 CLI(`--help` / `commands --json` / `raw OPTIONS`)查询。
+- README 命令清单/能力表补充上述用法,并说明 `--dry-run` 预览与 `--force` 的关系,以及"帮助由 spec 生成、不会漂移"。
 
 ## [0.1.1] - 2026-10-04
 

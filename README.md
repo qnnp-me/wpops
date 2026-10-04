@@ -109,6 +109,9 @@ node bin/wpops.js doctor
 
 ## 3. 命令
 
+> **现查现用**:`wpops help <组>` 或 `wpops <组> --help` 看某组动作与参数;`wpops commands --json` 拿机器可读清单(全部组/动作/是否写操作)。
+> 帮助与清单都由 `lib/spec.js` 单一事实来源生成,不会和实现漂移。
+
 ```
 # 内容
 wpops posts  list [--per-page 10] [--page 2] [--status draft] [--search 关键词]
@@ -291,11 +294,13 @@ wpops --all plugins list      # 巡检所有站的插件
 - 网络抖动/429/5xx 会自动重试(默认 2 次,幂等方法才重试网络错误)。
 - 这是本地脚本,不对外开端口。
 
-## 7. 与 WordPress skills 的关系
+## 7. 自洽执行器
 
-本项目是**执行器**(真正发请求);已安装的官方 skills
-(`wp-rest-api`、`wp-wpcli-and-ops`、`wp-performance`、`wordpress-router`)
-是**知识/规范**,指导"该怎么安全地做"。
+本项目是**执行器**(真正发请求),内置 agent skill(`skills/wpops/SKILL.md`)自洽、不依赖其他 skill:
+它只讲清**何时用、安全流程、能力索引、如何现查现用**(`wpops help` / `wpops commands --json` / `wpops raw`),
+精确的字段与枚举一律在运行时向 CLI 或站点查询,因此不会随文档过时。
+
+更广义的 WordPress 知识(主题/插件开发、WP-CLI 运维、性能等)属于其他领域,与本工具正交,按需另取即可。
 
 ## 8. 全局命令(可选)
 
