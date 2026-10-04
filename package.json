@@ -6,7 +6,7 @@
   "author": "qnnp",
   "type": "module",
   "bin": {
-    "wpops": "./bin/wpops.js"
+    "wpops": "bin/wpops.js"
   },
   "files": [
     "bin",
