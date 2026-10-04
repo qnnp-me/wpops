@@ -1,0 +1,17 @@
+{
+  "name": "wpops",
+  "version": "0.1.0",
+  "private": true,
+  "description": "WordPress operations toolkit: REST API client + connection doctor",
+  "type": "module",
+  "bin": {
+    "wpops": "./bin/wpops.js"
+  },
+  "scripts": {
+    "doctor": "node bin/wpops.js doctor",
+    "help": "node bin/wpops.js help"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,8 @@
+node_modules/
+.env
+.env.*
+!.env.example
+sites/*.env
+*.log
+backups/
+tmp/
