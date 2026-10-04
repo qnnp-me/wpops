@@ -5,6 +5,11 @@
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-10-05
+
+### Changed
+- **恢复 `postinstall`**:安装时即把内置 skill 复制到发现目录(0.4.0 曾移除)。pnpm 10+ 需一次性 `pnpm approve-builds -g wpops` 批准该脚本(非交互);也可用 `wpops setup` / `wpops install-skill` 兜底。配置目录仍为用户级稳定目录(见 0.4.0)。
+
 ## [0.4.0] - 2026-10-05
 
 ### Changed

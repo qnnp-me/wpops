@@ -23,12 +23,14 @@ WordPress REST 操作工具。只依赖 Node 内置能力(无第三方包),用�
 **最快:一条命令装好(含 skill)**
 
 ```powershell
-npm i -g wpops     # 装 CLI(无 postinstall,不会被 pnpm 等的「构建脚本确认」拦住)
-wpops setup        # 配置站点 + 自动装好内置 skill(写到 ~/.agents/skills/wpops)
+npm i -g wpops     # 装 CLI;postinstall 会把内置 skill 复制到 ~/.agents/skills/wpops
+wpops setup        # 配置站点(问 URL/用户名/应用密码)并体检
 ```
 
 第二条是配置站点(密码必须你亲自输入,不回显)。之后即可 `wpops posts list` 等。
 不想安装、只想用一次:`npx wpops doctor`。
+
+> **pnpm 用户**:pnpm 10+ 默认拦截依赖的 `postinstall`,会提示待批准。**非交互批准**:`pnpm approve-builds -g wpops`(若该脚本已被跳过,再 `pnpm rebuild -g wpops`)。不批准也行——`wpops setup` 或首次运行任意 `wpops` 命令也会把 skill 装好;`wpops install-skill` 可手动装。
 
 **从 Git / 开发者**
 
@@ -62,7 +64,7 @@ npm publish
 
 > 凭据不进仓库 / 包:配置默认写在**用户目录**(见「1. 配置」),`package.json` 的 `files`
 > 白名单也不含它。每台机器各自 `wpops setup`,工具与 skill 都不携带密钥。
-> `WPOPS_SKIP_SKILL=1` 可跳过装 skill;`wpops install-skill` 可手动装/刷新。安装不再用 postinstall,免得被 pnpm 等包管理器的脚本确认拦住。
+> `WPOPS_SKIP_SKILL=1` 可跳过装 skill;`wpops install-skill` 可手动装/刷新。
 
 ### 本机(开发) vs 其他机器(使用)
 
