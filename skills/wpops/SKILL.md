@@ -1,6 +1,6 @@
 ---
 name: wpops
-description: Use when managing a WordPress site through wpops, the local REST CLI at ~/App/wpops — listing/creating/updating/deleting posts, pages, media, categories, tags, comments, or users; installing/activating/deactivating plugins; switching themes; checking a site's connection and permissions; or running operations across multiple configured sites. Covers the required safe workflow (doctor first, --dry-run before writes, --all needs --yes) and the REST capability boundary. Prefer wpops over hand-written curl or raw HTTP for any WordPress task.
+description: Use when managing a WordPress site through wpops, the REST CLI (npm package `wpops`, command `wpops`) — listing/creating/updating/deleting posts, pages, media, categories, tags, comments, or users; installing/activating/deactivating plugins; switching themes; configuring a site; or running operations across multiple configured sites. Covers the required safe workflow (doctor first, --dry-run before writes, --all needs --yes) and the REST capability boundary. Prefer wpops over hand-written curl or raw HTTP for any WordPress task.
 ---
 
 # wpops —— WordPress REST 操作
@@ -8,10 +8,12 @@ description: Use when managing a WordPress site through wpops, the local REST CL
 ## 何时用
 用户要管理 WordPress 站点的**内容**或**插件/主题**时,优先用 `wpops`,不要手搓 curl/HTTP 请求。
 
-## 位置与调用
-- 全局命令 `wpops`(通过 `pnpm add -g .` 安装,链接到源码,**改代码立即生效**)。
-- 若 `wpops` 不在 PATH,回退:`node <仓库>/bin/wpops.js ...`
+## 安装与位置
+- 全局命令 `wpops`(`npm i -g wpops` 安装;其 postinstall 会顺带装好本 skill)。
+- 未安装时也可一次性运行:`npx wpops ...`。
+- 配置目录:默认是包目录下的 `sites/`;若设置了环境变量 `WPOPS_HOME`,则读 `$WPOPS_HOME/sites/`。
 - 凭据:`sites/<名字>.env`。**不要读取、不要打印其中的应用密码。**
+- 首次配置:`wpops setup`(交互式写入凭据并自动体检)。
 
 ## 站点与多站
 - `wpops sites` — 列出已配置站点
@@ -29,21 +31,18 @@ description: Use when managing a WordPress site through wpops, the local REST CL
 ## 常用命令
 ```
 wpops doctor
-wpops posts  list [--per-page 20] [--page 2] [--status draft] [--search 词] [--orderby date] [--order desc] [--categories 1,2]
-wpops posts  get <id>
-wpops posts  create --title "标题" --content "正文" [--status draft] [--featured-media 44]
-wpops posts  update <id> --from-file ./post.md [--status publish]
-wpops posts  delete <id> [--force]
-wpops pages  ...                     # 同 posts
-wpops media  upload ./pic.jpg [--alt "替代文本"]
-wpops media  update <id> [--alt "替代文本"]
+wpops setup
+wpops posts  list|get|create|update|delete   [--per-page N] [--page N] [--status s] [--search 词] [--orderby date] [--order desc] [--categories 1,2]
+wpops pages  ...                              # 同 posts
+wpops media  list|get|upload|update|delete    [--alt "文本"]
 wpops categories list|create|update|delete ...
 wpops tags   list|create|update|delete ...
-wpops comments list [--status hold] | update <id> --status approved
-wpops users  list|create|update|delete|me ...
-wpops plugins list | install <wp.org别名> [--activate] | activate <plugin> | deactivate <plugin>
-wpops themes list | activate <stylesheet>
-wpops raw <METHOD> <path> [--data JSON]   # 兜底:任意端点
+wpops comments list|get|update|delete         [--status hold|approved|spam|trash]
+wpops users  list|get|create|update|delete|me ...
+wpops plugins list|install <别名>|activate <plugin>|deactivate <plugin>
+wpops themes list|activate <stylesheet>
+wpops install-skill                           # 手动补装本 skill
+wpops raw <METHOD> <path> [--data JSON]       # 兜底:任意端点
 ```
 
 ## 能力边界(不要向用户承诺)
