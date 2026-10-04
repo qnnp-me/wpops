@@ -9,7 +9,8 @@
   },
   "scripts": {
     "doctor": "node bin/wpops.js doctor",
-    "help": "node bin/wpops.js help"
+    "help": "node bin/wpops.js help",
+    "test": "node --test"
   },
   "engines": {
     "node": ">=20"

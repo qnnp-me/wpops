@@ -37,33 +37,58 @@ node bin/wpops.js doctor
 
 ```
 # 内容
-wpops posts  list [--per-page 10] [--page 2] [--status draft] [--search 关键词] [--json]
+wpops posts  list [--per-page 10] [--page 2] [--status draft] [--search 关键词]
+                 [--orderby date] [--order desc] [--categories 1,2] [--tags 3]
+                 [--author 1] [--after 2026-01-01] [--before 2026-12-31] [--json]
 wpops posts  get <id>
-wpops posts  create --title "标题" --content "正文" [--status draft] [--categories 1,2] [--tags 3]
+wpops posts  create --title "标题" --content "正文" [--status draft] [--categories 1,2] [--tags 3] [--featured-media 44]
 wpops posts  create --title "标题" --from-file ./post.md --status draft
-wpops posts  update <id> --title "新标题" [--status publish]
+wpops posts  update <id> --title "新标题" [--status publish] [--featured-media 0]
 wpops posts  delete <id> [--force]        # 默认进回收站
 wpops pages  ...                          # 同样的子命令
 wpops me
 
 # 媒体
-wpops media  list [--per-page 20] [--page 2]
+wpops media  list [--per-page 20] [--media-type image]
+wpops media  get <id>
 wpops media  upload ./pic.jpg [--title "标题"] [--alt "替代文本"]
+wpops media  update <id> [--alt "替代文本"] [--caption "说明"] [--post 123]
 wpops media  delete <id>
 
-# 插件(见下方能力说明)
+# 分类 / 标签
+wpops categories list [--per-page 100] [--search 关键词]
+wpops categories create --name "新分类" [--slug x] [--parent 3] [--description "..."]
+wpops categories update <id> --name "改名"
+wpops categories delete <id> --force      # 分类删除不可撤销,必须 --force
+wpops tags ...                            # 同样的子命令
+
+# 评论 / 用户
+wpops comments list [--status hold|approved|spam|trash] [--post 123]
+wpops comments update <id> --status approved
+wpops comments delete <id> [--force]
+wpops users  list [--search 关键词] [--role administrator]
+wpops users  create --username bob --email bob@example.com --role editor
+wpops users  update <id> --role editor
+wpops users  delete <id> --force [--reassign 1]   # 有内容的用户需指定内容转交人
+wpops users  me
+
+# 插件 / 主题(见下方能力说明)
 wpops plugins list [--status active] [--search 关键词]
 wpops plugins install <wordpress.org 别名> [--activate]
 wpops plugins activate <plugin>           # plugin 形如 akismet/akismet
 wpops plugins deactivate <plugin>
-
-# 主题
 wpops themes list
 wpops themes activate <stylesheet>
 
 # 兜底:任意端点
 wpops raw GET /wp-json/wp/v2/categories
 wpops raw POST /wp-json/wp/v2/comments --data '{"post":1,"content":"hi"}'
+
+# 安全开关
+wpops posts delete 12 --dry-run                     # 只预览,不执行(所有写命令都支持)
+wpops --all posts delete 12 --dry-run               # 跨站预览
+wpops --all plugins list                            # 读操作无需确认
+wpops --all plugins activate akismet/akismet --yes  # 写操作必须 --yes
 ```
 
 ## 4. 多站点
@@ -118,7 +143,9 @@ wpops --all plugins list      # 巡检所有站的插件
 
 - `sites/*.env` 存放应用密码,等同于该账号登录凭据;专用账号 + 可随时在后台吊销。
 - 应用密码要求 HTTPS。
-- 破坏性操作(`delete --force`、插件启停)请先 `--json` 或 `get` 确认目标。
+- **写操作前先 `--dry-run` 预览**;破坏性操作(`delete --force`、分类/用户删除)另需 `--force`。
+- **`--all` 的写操作必须加 `--yes`**,否则直接拒绝,避免手滑波及全线。
+- 网络抖动/429/5xx 会自动重试(默认 2 次,幂等方法才重试网络错误)。
 - 这是本地脚本,不对外开端口。
 
 ## 7. 与 WordPress skills 的关系

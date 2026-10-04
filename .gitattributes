@@ -1,0 +1,2 @@
+# 统一行尾为 LF,避免跨平台 CRLF 噪音(shebang 也更安全)
+* text=auto eol=lf

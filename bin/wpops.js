@@ -1,44 +1,8 @@
 #!/usr/bin/env node
 import { loadEnv, listSites } from '../lib/env.js';
 import { buildConfig, createClient, WpError } from '../lib/client.js';
+import { parseArgs, isMutation } from '../lib/args.js';
 import * as cmd from '../lib/commands.js';
-
-function parseArgs(argv) {
-  const positionals = [];
-  const flags = {};
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i];
-    if (arg === '-s' || arg === '--site') {
-      flags.site = argv[++i];
-      continue;
-    }
-    if (arg === '-a' || arg === '--all') {
-      flags.all = true;
-      continue;
-    }
-    if (arg === '-h') {
-      flags.help = true;
-      continue;
-    }
-    if (arg.startsWith('--')) {
-      const eq = arg.indexOf('=');
-      if (eq !== -1) {
-        flags[arg.slice(2, eq)] = arg.slice(eq + 1);
-      } else {
-        const next = argv[i + 1];
-        if (next !== undefined && !next.startsWith('--')) {
-          flags[arg.slice(2)] = next;
-          i++;
-        } else {
-          flags[arg.slice(2)] = true;
-        }
-      }
-    } else {
-      positionals.push(arg);
-    }
-  }
-  return { positionals, flags };
-}
 
 function printJson(value) {
   console.log(JSON.stringify(value, null, 2));
@@ -53,43 +17,53 @@ function printHelp() {
   me                              当前用户与能力
   sites                           列出已配置的站点
 
-  posts  list|get|create|update|delete ...
-  pages  list|get|create|update|delete ...
-  media  list|get|upload|delete ...
-  plugins list|install|activate|deactivate ...
-  themes list|activate ...
+  posts      list|get|create|update|delete ...
+  pages      list|get|create|update|delete ...
+  media      list|get|upload|update|delete ...
+  plugins    list|install|activate|deactivate ...
+  themes     list|activate ...
+  categories list|get|create|update|delete ...
+  tags       list|get|create|update|delete ...
+  comments   list|get|update|delete ...
+  users      list|get|create|update|delete|me ...
   raw <METHOD> <path> [--data JSON]   任意端点兜底
 
 多站点:
   --site <名字> / -s <名字>        对 sites/<名字>.env 执行
-  --all / -a                       对所有已配置站点批量执行
+  --all / -a                       对所有已配置站点批量执行(写操作需 --yes)
+
+安全:
+  --dry-run                       只预览不执行(写操作)
+  --yes / -y                      --all 写操作的确认开关
 
 常用参数:
-  --per-page N        每页数量(REST 上限 100)
-  --page N            页码(列表默认第 1 页)
-  --status <s>        状态(draft|publish|...)
-  --search <s>        搜索
-  --title/--content   标题/正文
-  --from-file <path>  正文取自文件
-  --slug <s>          别名(slug)
-  --excerpt <s>       摘要
-  --categories 1,2    分类 ID
-  --tags 3,4          标签 ID
-  --alt <文本>        图片替代文本(media upload)
-  --force             彻底删除(delete,默认进回收站)
-  --activate          安装后立即启用(plugins install)
-  --data <JSON>       raw 的请求体
-  --json              输出原始 JSON
+  --per-page N · --page N         分页(REST 上限 100)
+  --status <s>                    状态(posts/comments 等)
+  --search <s> · --orderby <f> · --order <asc|desc>
+  --categories 1,2 · --tags 3,4   分类/标签 ID(过滤或设置)
+  --author <id> · --after <日期> · --before <日期>
+  --title/--content/--from-file   标题/正文
+  --slug <s> · --excerpt <s>      别名 / 摘要
+  --featured-media <id>           特色图
+  --alt <文本> · --caption <文本> 媒体替代文本 / 说明
+  --name/--parent/--description   分类/标签字段
+  --username/--email/--role       用户字段
+  --force                         彻底删除 / 危险操作确认
+  --data <JSON>                   raw 的请求体
+  --json                          输出原始 JSON
 
 示例:
   wpops doctor
-  wpops -s blog-a posts list --per-page 5
+  wpops -s blog-a posts list --per-page 5 --orderby date --order desc
+  wpops posts list --categories 3,7
+  wpops posts update 12 --from-file ./post.md --status draft
+  wpops media update 44 --alt "配图"
+  wpops categories list
+  wpops comments list --status hold
   wpops --all posts list
-  wpops posts create --title "标题" --content "正文" --status draft
-  wpops media upload ./pic.jpg --alt "配图"
-  wpops plugins list
-  wpops plugins install wp-super-cache --activate
-  wpops raw GET /wp-json/wp/v2/categories`);
+  wpops --all plugins list
+  wpops --all posts delete 5 --dry-run
+  wpops plugins install wp-super-cache --activate`);
 }
 
 function printSites() {
@@ -147,11 +121,31 @@ async function runOne(site, group, action, rest, flags, showHeader) {
     }
   };
 
+  const taxonomy = async (tax) => {
+    switch (action) {
+      case undefined:
+      case 'list':
+        return cmd.listTaxonomy(client, tax, flags);
+      case 'get':
+        return cmd.getTaxonomy(client, tax, needFirst('get'));
+      case 'create':
+      case 'new':
+        return cmd.createTaxonomy(client, tax, flags);
+      case 'update':
+      case 'edit':
+        return cmd.updateTaxonomy(client, tax, needFirst('update'), flags);
+      case 'delete':
+      case 'rm':
+        return cmd.deleteTaxonomy(client, tax, needFirst('delete'), flags);
+      default:
+        throw new Error(`${tax} 未知子命令:${action}`);
+    }
+  };
+
   switch (group) {
     case 'doctor':
       return cmd.doctor(client, cfg, flags);
     case 'me':
-    case 'user':
       return cmd.me(client, flags);
     case 'posts':
     case 'post':
@@ -164,15 +158,16 @@ async function runOne(site, group, action, rest, flags, showHeader) {
         case undefined:
         case 'list':
           return cmd.listMedia(client, flags);
+        case 'get':
+          return cmd.getMedia(client, needFirst('get'), flags);
         case 'upload':
           return cmd.uploadMedia(client, needFirst('upload 需要文件路径'), flags);
+        case 'update':
+        case 'edit':
+          return cmd.updateMedia(client, needFirst('update'), flags);
         case 'delete':
         case 'rm':
           return cmd.deleteMedia(client, needFirst('delete'), flags);
-        case 'get': {
-          const { data } = await client.request('GET', `/wp-json/wp/v2/media/${Number(needFirst('get'))}`);
-          return printJson(data);
-        }
         default:
           throw new Error(`media 未知子命令:${action}`);
       }
@@ -206,6 +201,51 @@ async function runOne(site, group, action, rest, flags, showHeader) {
         default:
           throw new Error(`themes 未知子命令:${action}`);
       }
+    case 'categories':
+    case 'category':
+      return taxonomy('categories');
+    case 'tags':
+    case 'tag':
+      return taxonomy('tags');
+    case 'comments':
+    case 'comment':
+      switch (action) {
+        case undefined:
+        case 'list':
+          return cmd.listComments(client, flags);
+        case 'get':
+          return cmd.getComment(client, needFirst('get'));
+        case 'update':
+        case 'edit':
+          return cmd.updateComment(client, needFirst('update'), flags);
+        case 'delete':
+        case 'rm':
+          return cmd.deleteComment(client, needFirst('delete'), flags);
+        default:
+          throw new Error(`comments 未知子命令:${action}`);
+      }
+    case 'users':
+    case 'user':
+      switch (action) {
+        case undefined:
+        case 'list':
+          return cmd.listUsers(client, flags);
+        case 'me':
+          return cmd.me(client, flags);
+        case 'get':
+          return cmd.getUser(client, needFirst('get'));
+        case 'create':
+        case 'new':
+          return cmd.createUser(client, flags);
+        case 'update':
+        case 'edit':
+          return cmd.updateUser(client, needFirst('update'), flags);
+        case 'delete':
+        case 'rm':
+          return cmd.deleteUser(client, needFirst('delete'), flags);
+        default:
+          throw new Error(`users 未知子命令:${action}`);
+      }
     case 'raw':
       if (!action || !rest[0]) throw new Error('raw 用法:wpops raw <METHOD> <path> [--data JSON]');
       return cmd.raw(client, action, rest[0], flags);
@@ -228,10 +268,14 @@ async function main() {
   }
 
   const site = flags.site || process.env.WPOPS_SITE || null;
+  const mutating = isMutation(group, action);
 
   if (flags.all) {
     const targets = listSites();
     if (!targets.length) throw new Error('还没有配置任何站点');
+    if (mutating && !flags.yes && !flags['dry-run']) {
+      throw new Error('--all 会作用于所有站点。写操作请加 --yes 确认,或先用 --dry-run 预览。');
+    }
     let failures = 0;
     for (const target of targets) {
       try {
