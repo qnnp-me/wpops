@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "WordPress operations toolkit: REST API client + connection doctor",
+  "license": "MIT",
   "type": "module",
   "bin": {
     "wpops": "./bin/wpops.js"
