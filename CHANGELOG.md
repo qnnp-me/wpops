@@ -5,6 +5,11 @@
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-10-05
+
+### Changed
+- 内置 skill 的 frontmatter 增加 `license: MIT`(符合 agentskills.io 规范);仓库增加 `agent-skills` topic,便于 `gh skill` 发现。
+
 ## [0.3.0] - 2026-10-04
 
 ### Added
