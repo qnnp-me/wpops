@@ -11,6 +11,7 @@
   "files": [
     "bin",
     "lib",
+    "scripts",
     "skills",
     ".env.example",
     "README.md"
@@ -34,8 +35,10 @@
     "url": "https://github.com/qnnp-me/wpops/issues"
   },
   "scripts": {
+    "setup": "node bin/wpops.js setup",
     "doctor": "node bin/wpops.js doctor",
     "help": "node bin/wpops.js help",
+    "postinstall": "node scripts/postinstall.mjs",
     "test": "node --test"
   },
   "engines": {

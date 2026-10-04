@@ -2,6 +2,7 @@
 import { loadEnv, listSites } from '../lib/env.js';
 import { buildConfig, createClient, WpError } from '../lib/client.js';
 import { parseArgs, isMutation } from '../lib/args.js';
+import { installSkill } from '../lib/skill.js';
 import * as cmd from '../lib/commands.js';
 
 function printJson(value) {
@@ -13,9 +14,11 @@ function printHelp() {
 
 用法: wpops [--site 名字 | --all] <组> <动作> [参数] [--flags]
 
+  setup                           交互式配置一个站点(写入 sites/<名字>.env 并体检)
   doctor                          连接与权限体检(先跑这个)
   me                              当前用户与能力
   sites                           列出已配置的站点
+  install-skill                   把内置 skill 装到 agent 发现目录
 
   posts      list|get|create|update|delete ...
   pages      list|get|create|update|delete ...
@@ -264,6 +267,19 @@ async function main() {
   }
   if (group === 'sites') {
     printSites();
+    return;
+  }
+  if (group === 'setup') {
+    await cmd.setup(flags);
+    return;
+  }
+  if (group === 'install-skill') {
+    const dirs = installSkill();
+    if (!dirs.length) {
+      console.log('未安装 skill(可能已存在同名目录被跳过,或用 WPOPS_SKIP_SKILL 禁用)。');
+    } else {
+      for (const dir of dirs) console.log(`✓ skill 已安装到 ${dir}`);
+    }
     return;
   }
 

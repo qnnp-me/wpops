@@ -13,39 +13,43 @@ WordPress REST 操作工具。只依赖 Node 内置能力(无第三方包),用�
 
 ## 安装 / 分发
 
-零依赖、纯 Node(≥20)。两种方式,任选。
+零依赖、纯 Node(≥20)。
 
-**A. 从 Git 仓库(推荐,个人 / 小范围)**
+**最快:一条命令装好(含 skill)**
+
+```powershell
+npm i -g wpops     # 装 CLI;postinstall 会自动把 skill 装到 ~/.agents/skills/wpops
+wpops setup        # 交互式配置站点:问 URL / 用户名 / 应用密码,写 sites/<名字>.env 并自动体检
+```
+
+第二条是配置站点(密码必须你亲自输入,不回显)。之后即可 `wpops posts list` 等。
+不想安装、只想用一次:`npx wpops doctor`。
+
+**从 Git / 开发者**
 
 ```powershell
 git clone https://github.com/qnnp-me/wpops.git
 cd wpops
-./install.ps1          # Windows;macOS/Linux 用 sh install.sh
+./install.ps1          # Windows;macOS/Linux 用 sh install.sh(装 CLI + skill)
 ```
 
-脚本做两件事:`pnpm add -g .` 全局装 CLI,并把 `skills/wpops/SKILL.md`
-复制到 `~/.agents/skills/wpops/`(agent 的发现路径)。
+不 clone 也行:`pnpm add -g github:qnnp-me/wpops`,再加
+`npx skills add qnnp-me/wpops --skill wpops -a opencode -g`。
 
-不 clone 也行:
+**发布(维护者)**
 
 ```powershell
-pnpm add -g github:qnnp-me/wpops
-npx skills add qnnp-me/wpops --skill wpops -a opencode -g
+npm publish
 ```
 
-**B. 发布到 npm(可选,`npx wpops` 免安装)**
-
-```powershell
-npm publish --access public     # 或改用 @scope/wpops
-npm i -g wpops                  # 或 npx wpops ...
-```
-
-> 凭据不进仓库:`sites/*.env` 与 `.env` 已被 `.gitignore` 忽略。
-> 每台机器各自复制 `.env.example` 填写即可,工具与 skill 一起分发、互不携带密钥。
+> 凭据不进仓库 / 包:`sites/*.env` 与 `.env` 已忽略,且 `package.json` 的 `files`
+> 白名单不含 `sites/`。每台机器各自 `wpops setup`,工具与 skill 都不携带密钥。
+> `WPOPS_SKIP_SKILL=1 npm i -g wpops` 可跳过自动装 skill;`wpops install-skill` 可手动补装。
 
 ## 1. 配置
 
-给每个站点建一个档案:把 `.env.example` 复制成 `sites/<名字>.env`,填入真实值:
+给每个站点建一个档案。**推荐用向导**:`wpops setup`(问 URL/用户名/应用密码,自动写入并体检)。
+也可以手动:把 `.env.example` 复制成 `sites/<名字>.env`,填入真实值:
 
 ```
 WP_URL=https://your-site.example.com
