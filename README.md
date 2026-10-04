@@ -156,6 +156,57 @@ wpops menu-items create --title "Projects" --menus 190 --type post_type --object
 wpops menu-items update <id> --menu-order 3 [--parent 4979] [--target _blank]
 wpops menu-items delete <id> --dry-run            # 预览不需要 --force
 wpops menu-items delete <id> --force              # 真正删除才必须 --force(不可撤销)
+wpops menus  create --name Header --locations header,mobile
+wpops menus  update 190 --locations header,mobile  # 位置分配靠更新菜单的 locations
+wpops menus  delete 190 --force
+
+# 搜索 / 站点设置 / 自省
+wpops search 关键词 [--type post] [--subtype post] [--per-page 10]
+wpops settings                                     # 查看站点设置
+wpops settings update --title "新标题" [--description "..."] [--timezone Asia/Shanghai] [--posts-per-page 10]
+wpops settings update --data '{"show_on_front":"page"}'
+wpops types list|get <type>                        # 已注册文章类型(含 rest_base)
+wpops taxonomies list|get <tax>                    # 已注册分类法
+wpops statuses                                     # 文章状态
+
+# 任意自定义类型(show_in_rest 的 CPT / 自定义分类)
+wpops content list books [--per-page 10]           # rest_base 直接当 type
+wpops content get  books 12
+wpops content create books --title "..." [--status draft]
+wpops content update books 12 --title "..."
+wpops content delete books 12 --force
+wpops terms list genres                            # 自定义分类法同理
+
+# 修订 / 区块 / 区块主题结构
+wpops revisions list <id> [--type posts|pages]
+wpops revisions get <id> <rev>
+wpops revisions restore <id> <rev>                 # 用旧修订覆盖正文
+wpops revisions delete <id> <rev> --force
+wpops blocks list|get|create|update|delete ...     # 可复用区块
+wpops navigation list|get|create|update|delete ... # 区块主题导航
+wpops templates list|get|update ...                # 模板(update --content/--from-file)
+wpops template-parts list|get|update ...
+wpops global-styles get <id> · global-styles update <id> --styles '{"...":...}'
+
+# 小工具 / 应用密码 / 插件能力
+wpops widgets list|get|create|update|delete ...    # --id --sidebar --instance JSON
+wpops sidebars list|get|update ...                 # update --widgets a,b,c
+wpops app-passwords list [--user me]               # 列出应用密码(不含明文)
+wpops app-passwords create --name ci-token [--user me]   # 明文密码只打印这一次
+wpops app-passwords delete <uuid> --force
+wpops abilities list|get|run <name> [--input JSON] # Abilities API(需插件)
+wpops health list · health <test>                  # 站点健康测试(需插件)
+wpops batch --requests '[{"method":"DELETE","path":"/wp/v2/menu-items/123"}]'  # 仅 POST/PUT/PATCH/DELETE
+
+# 输出与批量
+wpops posts list --all-pages                       # 自动翻完所有页
+wpops posts list --fields id,title,status --csv    # 字段投影 / CSV(--table 表格)
+wpops menus list --quiet                           # 只出错时输出
+wpops menus list --output menus.txt                # 写入文件
+wpops sites show qnnp.me                            # 查看站点配置(密码打码)
+wpops sites rm qnnp.me · sites rename 旧 新         # 管理站点档案(确认后再用)
+wpops completion bash                              # 输出补全脚本
+wpops help menus                                   # 某组用法
 
 # 插件 / 主题(见下方能力说明)
 wpops plugins list [--status active] [--search 关键词]
@@ -212,11 +263,17 @@ wpops --all plugins list      # 巡检所有站的插件
 | 事项 | 核心 REST 能做到吗 |
 |---|---|
 | 文章 / 页面 / 媒体 / 分类 / 标签 / 评论 / 用户的增删改查 | ✅ 完整 |
+| 搜索、站点设置(site title/时区/…)、类型/分类/状态自省 | ✅ |
+| 自定义类型 / 自定义分类(`show_in_rest` 的 CPT) | ✅(`content` / `terms` 通用命令) |
+| 修订历史(列/看/删/恢复)、可复用区块、区块主题导航/模板/全局样式 | ✅ |
+| 小工具 / 边栏、用户应用密码 | ✅ |
 | 导航菜单 / 菜单项(列表、增删改) | ⚠️ 需站点装有暴露 `/menus`、`/menu-items` 的插件 |
 | 插件:列出、**安装**(按 wp.org 别名)、启用/停用、删除 | ✅ |
 | 插件:**更新已装插件代码** | ❌ 核心 REST 没有该端点 |
 | 主题:列出、切换 | ✅ |
 | 主题:安装 / 更新 | ❌ |
+| Abilities API(`abilities list/run`)、站点健康测试(`health`) | ⚠️ 需对应插件 |
+| 批量请求(`batch`) | ✅(仅 POST/PUT/PATCH/DELETE,核心限制) |
 | WordPress 核心更新 | ❌ |
 | 备份 / 数据库优化 / 缓存清理 | ❌(需服务器侧) |
 

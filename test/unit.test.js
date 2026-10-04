@@ -4,6 +4,7 @@ import { parseDotenv } from '../lib/env.js';
 import { configProblems, WpError } from '../lib/client.js';
 import { parseArgs, isMutation } from '../lib/args.js';
 import { deleteMenuItem, createMenuItem, listMenus } from '../lib/commands.js';
+import { parseJson } from '../lib/util.js';
 
 test('parseDotenv:注释、引号、空值、去空格', () => {
   const vars = parseDotenv(
@@ -77,6 +78,11 @@ test('menu-items:--dry-run 预览不依赖 --force,且不发请求;真实删除�
   await assert.rejects(() => deleteMenuItem(client, 42, {}), /--force/);
   // 缺少 --title 直接报错
   await assert.rejects(() => createMenuItem(client, { 'dry-run': true }), /--title/);
+});
+
+test('parseJson:容忍 UTF-8 BOM(Windows 重定向/文件常见)', () => {
+  assert.deepEqual(parseJson('\uFEFF{"a":1}'), { a: 1 });
+  assert.deepEqual(parseJson('[1,2,3]'), [1, 2, 3]);
 });
 
 test('menus:路由缺失(rest_no_route)时提示需插件', async () => {
