@@ -9,6 +9,38 @@ WordPress REST 操作工具。只依赖 Node 内置能力(无第三方包),用�
 - 凭据只落在本机 `sites/*.env`,不进 shell 历史、不写进命令。
 - 输出可读,也可以 `--json` 交给别的脚本。
 
+## 安装 / 分发
+
+零依赖、纯 Node(≥20)。两种方式,任选。
+
+**A. 从 Git 仓库(推荐,个人 / 小范围)**
+
+```powershell
+git clone https://github.com/<你>/wpops.git
+cd wpops
+./install.ps1          # Windows;macOS/Linux 用 sh install.sh
+```
+
+脚本做两件事:`pnpm add -g .` 全局装 CLI,并把 `skills/wpops/SKILL.md`
+复制到 `~/.agents/skills/wpops/`(agent 的发现路径)。
+
+不 clone 也行:
+
+```powershell
+pnpm add -g github:<你>/wpops
+npx skills add <你>/wpops --skill wpops -a opencode -g
+```
+
+**B. 发布到 npm(可选,`npx wpops` 免安装)**
+
+```powershell
+npm publish --access public     # 或改用 @scope/wpops
+npm i -g wpops                  # 或 npx wpops ...
+```
+
+> 凭据不进仓库:`sites/*.env` 与 `.env` 已被 `.gitignore` 忽略。
+> 每台机器各自复制 `.env.example` 填写即可,工具与 skill 一起分发、互不携带密钥。
+
 ## 1. 配置
 
 给每个站点建一个档案:把 `.env.example` 复制成 `sites/<名字>.env`,填入真实值:

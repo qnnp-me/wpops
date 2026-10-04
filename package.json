@@ -7,6 +7,19 @@
   "bin": {
     "wpops": "./bin/wpops.js"
   },
+  "files": [
+    "bin",
+    "lib",
+    "skills",
+    ".env.example",
+    "README.md"
+  ],
+  "keywords": [
+    "wordpress",
+    "rest-api",
+    "cli",
+    "wp-json"
+  ],
   "scripts": {
     "doctor": "node bin/wpops.js doctor",
     "help": "node bin/wpops.js help",
