@@ -1,5 +1,7 @@
 # wpops
 
+> WordPress REST operations toolkit — a zero-dependency CLI (plus agent skill) to manage posts, pages, media, comments, users and plugins across one or many sites.
+
 WordPress REST 操作工具。只依赖 Node 内置能力(无第三方包),用应用密码通过
 `/wp-json/` 管理站点内容与插件。
 
@@ -55,6 +57,16 @@ WP_APP_PASSWORD=xxxx xxxx xxxx xxxx xxxx xxxx
 建议**单独建一个自动化专用管理员账号**,别用你自己的主账号。
 
 > `sites/*.env` 已在 `.gitignore` 中,不会被提交。
+
+**配置位置**:默认读**包目录**下的 `.env` / `sites/`(git clone 就在仓库里)。
+若用 `npm i -g wpops` 全局安装,建议设环境变量 `WPOPS_HOME` 指向固定目录,
+把配置放那里,升级/重装不会丢:
+
+```powershell
+# 例如(Windows)
+setx WPOPS_HOME "%USERPROFILE%\.config\wpops"
+# 然后把 sites\<名字>.env 放到该目录下
+```
 
 ## 2. 先体检
 

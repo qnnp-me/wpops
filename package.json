@@ -1,9 +1,9 @@
 {
   "name": "wpops",
   "version": "0.1.0",
-  "private": true,
-  "description": "WordPress operations toolkit: REST API client + connection doctor",
+  "description": "WordPress REST operations toolkit — manage posts, pages, media, comments, users and plugins from the CLI. Multi-site, safety-first, zero dependencies.",
   "license": "MIT",
+  "author": "qnnp",
   "type": "module",
   "bin": {
     "wpops": "./bin/wpops.js"
@@ -17,10 +17,22 @@
   ],
   "keywords": [
     "wordpress",
+    "wp",
     "rest-api",
+    "wp-json",
     "cli",
-    "wp-json"
+    "application-password",
+    "content-management",
+    "multi-site"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qnnp-me/wpops.git"
+  },
+  "homepage": "https://github.com/qnnp-me/wpops#readme",
+  "bugs": {
+    "url": "https://github.com/qnnp-me/wpops/issues"
+  },
   "scripts": {
     "doctor": "node bin/wpops.js doctor",
     "help": "node bin/wpops.js help",
