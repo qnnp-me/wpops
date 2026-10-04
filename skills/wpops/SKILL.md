@@ -42,7 +42,7 @@ description: Use when managing a WordPress site through wpops, the zero-dependen
 内容与结构:
 - `posts` / `pages` — 文章/页面增删改查。
 - `content <rest_base>` / `terms <rest_base>` — 任意 `show_in_rest` 的 CPT / 自定义分类。
-- `media` — 媒体列出/上传/更新/删除。
+- `media` — 媒体列出/上传/URL 导入(`sideload`)/图像编辑(`edit-image` 裁剪旋转)/更新/删除。
 - `categories` / `tags` — 分类/标签。
 - `comments` — 评论(含创建/回复)。
 - `users` — 用户(含 `me`)。

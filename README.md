@@ -129,6 +129,8 @@ wpops me
 wpops media  list [--per-page 20] [--media-type image]
 wpops media  get <id>
 wpops media  upload ./pic.jpg [--title "标题"] [--alt "替代文本"]
+wpops media  sideload --url https://example.com/pic.jpg [--title "标题"]   # 从 URL 导入
+wpops media  edit-image <id> --rotation 90 [--crop] [--dest-width 800]     # 裁剪/旋转(缺 --src 自动取当前图)
 wpops media  update <id> [--alt "替代文本"] [--caption "说明"] [--post 123]
 wpops media  delete <id>
 

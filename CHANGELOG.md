@@ -16,7 +16,7 @@
   - `search` 跨内容搜索;`settings` 读取/更新站点设置;`types` / `taxonomies` / `statuses` 自省。
   - `revisions`(list/get/delete/restore)、`blocks`(可复用区块)、`navigation`、`templates`、`template-parts`、`global-styles`。
   - `widgets` / `sidebars`、`app-passwords`(创建时明文只打印一次)。
-  - `comments create`;`plugins delete <plugin> --force`。
+  - `comments create`;`plugins delete <plugin> --force`;`media sideload --url`(从 URL 导入)、`media edit-image`(裁剪/旋转)。
   - `abilities`(list/get/run)、`health`(list/<test>)、`batch`(仅 POST/PUT/PATCH/DELETE)。
 - CLI 能力:`--all-pages` 自动翻页;`--fields` / `--csv` / `--table` 输出投影;`--quiet`;`--output <文件>`;`--site a,b`;`--timeout` / `--retries`;`sites show|rm|rename`;`completion bash|zsh|fish|powershell`;`help <组>`。
 - 单一事实来源 `lib/spec.js`:组/动作/写操作/别名一处声明,派生 `wpops help`、`wpops <组> --help`、`wpops commands --json`、`--all` 写操作护栏(isMutation)与 shell 补全,避免文档与代码漂移。

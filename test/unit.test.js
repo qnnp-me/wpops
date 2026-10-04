@@ -3,7 +3,10 @@ import assert from 'node:assert/strict';
 import { parseDotenv } from '../lib/env.js';
 import { configProblems, WpError } from '../lib/client.js';
 import { parseArgs, isMutation } from '../lib/args.js';
-import { deleteMenuItem, createMenuItem, listMenus } from '../lib/commands.js';
+import {
+  deleteMenuItem, createMenuItem, listMenus, listMenuItems, listContent,
+  editMediaImage, sideloadMedia,
+} from '../lib/commands.js';
 import { parseJson } from '../lib/util.js';
 
 test('parseDotenv:注释、引号、空值、去空格', () => {
@@ -83,6 +86,43 @@ test('menu-items:--dry-run 预览不依赖 --force,且不发请求;真实删除�
 test('parseJson:容忍 UTF-8 BOM(Windows 重定向/文件常见)', () => {
   assert.deepEqual(parseJson('\uFEFF{"a":1}'), { a: 1 });
   assert.deepEqual(parseJson('[1,2,3]'), [1, 2, 3]);
+});
+
+test('listMenuItems/listContent:列表实际调用 client.request(路径/方法正确)', async () => {
+  const calls = [];
+  const client = {
+    request: async (method, path, opts) => {
+      calls.push({ method, path, opts });
+      return { data: [], headers: new Headers() };
+    },
+  };
+  const log = console.log;
+  console.log = () => {};
+  try {
+    await listMenuItems(client, { menus: '190' });
+    await listContent(client, 'posts', {});
+  } finally {
+    console.log = log;
+  }
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0].method, 'GET');
+  assert.equal(calls[0].path, '/wp-json/wp/v2/menu-items');
+  assert.equal(calls[0].opts.query.menus, '190');
+  assert.equal(calls[1].method, 'GET');
+  assert.equal(calls[1].path, '/wp-json/wp/v2/posts');
+});
+
+test('media:sideload 需要 --url;edit-image/sideload dry-run 不发请求', async () => {
+  const client = { request: async () => { throw new Error('不应发请求'); } };
+  const log = console.log;
+  console.log = () => {};
+  try {
+    await editMediaImage(client, 1, { 'dry-run': true, rotation: '90' });
+    await sideloadMedia(client, { 'dry-run': true, url: 'https://e/x.jpg' });
+  } finally {
+    console.log = log;
+  }
+  await assert.rejects(() => sideloadMedia(client, {}), /--url/);
 });
 
 test('menus:路由缺失(rest_no_route)时提示需插件', async () => {

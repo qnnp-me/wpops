@@ -160,7 +160,7 @@ async function main() {
   }
 
   if (group === 'sites') {
-    sitesCommand(action, rest);
+    await withOutput(flags, () => sitesCommand(action, rest));
     return;
   }
   if (group === 'setup') {
@@ -168,20 +168,22 @@ async function main() {
     return;
   }
   if (group === 'install-skill') {
-    const dirs = installSkill();
-    if (!dirs.length) {
-      console.log('未安装 skill(可能已存在同名目录被跳过,或用 WPOPS_SKIP_SKILL 禁用)。');
-    } else {
-      for (const dir of dirs) console.log(`✓ skill 已安装到 ${dir}`);
-    }
+    await withOutput(flags, () => {
+      const dirs = installSkill();
+      if (!dirs.length) {
+        console.log('未安装 skill(可能已存在同名目录被跳过,或用 WPOPS_SKIP_SKILL 禁用)。');
+      } else {
+        for (const dir of dirs) console.log(`✓ skill 已安装到 ${dir}`);
+      }
+    });
     return;
   }
   if (group === 'completion') {
-    printCompletion(action);
+    await withOutput(flags, () => printCompletion(action));
     return;
   }
   if (group === 'commands') {
-    console.log(commandsJson(version()));
+    await withOutput(flags, () => console.log(commandsJson(version())));
     return;
   }
 
@@ -200,14 +202,16 @@ async function main() {
       throw new Error('批量执行会作用于多个站点。写操作请加 --yes 确认,或先用 --dry-run 预览。');
     }
     let failures = 0;
-    for (const target of targets) {
-      try {
-        await withOutput(flags, () => runOne(target.name, group, action, rest, flags, true));
-      } catch (err) {
-        failures++;
-        console.error(`✗ [${target.label}] ${err.message}`);
+    await withOutput(flags, async () => {
+      for (const target of targets) {
+        try {
+          await runOne(target.name, group, action, rest, flags, true);
+        } catch (err) {
+          failures++;
+          console.error(`✗ [${target.label}] ${err.message}`);
+        }
       }
-    }
+    });
     if (failures) {
       console.error(`\n完成:${failures}/${targets.length} 个站点出错。`);
       process.exitCode = 1;
