@@ -33,6 +33,7 @@ npm test                               # node --test,无外部依赖
 - **安全默认**:内容创建默认草稿;写操作先 `--dry-run`;`--all` 写操作必须 `--yes`;改已发布内容要提示(附 `revisions restore` 回滚)。
 - **错误信息**:中文、简洁;用法错误附精简用法 + `wpops <组> --help` 提示。
 - **行尾 LF**(见 `.gitattributes`);提交信息用 Conventional Commits(`feat:`/`fix:`/`docs:`/`chore:` …)。
+- **提交信息一律用中文**(标题与正文;type/scope 等 Conventional Commits 关键字保留英文)。这是硬性约定,不是偏好。
 
 ## 发版
 
