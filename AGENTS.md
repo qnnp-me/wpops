@@ -23,7 +23,7 @@ npm test                               # node --test,无外部依赖
 - `lib/commands.js` —— 大部分命令;其余按域拆分:`client.js`(HTTP)、`env.js`(站点配置)、`blocks.js`、`revisions.js`、`settings.js`、`widgets.js`、`navigation.js`、`global-styles.js`、`templates.js`、`batch.js`、`search.js` 等。
 - `skills/wpops/SKILL.md` —— **随包分发的 agent skill**(发布物的一部分,改它=改发布内容)。
 - `scripts/postinstall.mjs` —— 安装后把内置 skill 复制到发现目录(pnpm 10+ 需 `pnpm approve-builds -g wpops` 批准该脚本);此外 `wpops setup` 也会装,首次运行按需静默刷新(`lib/skill.js`)。
-- `test/` —— `node --test` 测试(当前 57 个用例)。
+- `test/` —— `node --test` 测试(用 `npm test` 全量跑;用例数会随功能增长,不必在此维护)。
 - `sites/<名>.env`、`.env.example` —— 站点凭据。**绝不读取/打印其中的应用密码。**
 
 ## 约定

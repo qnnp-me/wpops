@@ -34,7 +34,7 @@ license: MIT
 
 ## 现查现用(不要背细节)
 - `wpops <组> --help`、`wpops help <组> [动作]` — 该组动作与参数(**首选**)。
-- `wpops commands --json` — 机器可读清单:全部组、动作、是否写操作、别名。
+- `wpops commands` — 人类可读概览:全部组、动作、是否写操作、别名;`wpops commands --json` 机器可读。
 - `wpops raw GET /wp-json/` — 站点真实命名空间与路由。
 - `wpops raw OPTIONS <path>` — 某端点支持的字段、类型、枚举、必填。
 - 字段语义以 WordPress 官方 REST 文档为准。

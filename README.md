@@ -109,7 +109,7 @@ node bin/wpops.js doctor
 
 ## 3. 命令
 
-> **现查现用**:`wpops help <组>` 或 `wpops <组> --help` 看某组动作与参数;`wpops commands --json` 拿机器可读清单(全部组/动作/是否写操作)。
+> **现查现用**:`wpops help <组>` 或 `wpops <组> --help` 看某组动作与参数;`wpops commands` 看人类可读概览(全部组/动作/是否写操作),`wpops commands --json` 拿机器可读清单。
 > 帮助与清单都由 `lib/spec.js` 单一事实来源生成,不会和实现漂移。
 >
 > **退出码**:`0` 成功;`2` 用法/参数错误(stderr 打印错误 + 精简用法 + `--help` 提示);`1` 运行期错误(HTTP/网络/配置)。`--help` 始终走 stdout 且为 `0`。
@@ -175,7 +175,8 @@ wpops menus  delete 190 --force
 wpops search 关键词 [--type post] [--subtype post] [--per-page 10]
 wpops settings                                     # 查看站点设置
 wpops settings update --title "新标题" [--description "..."] [--timezone Asia/Shanghai] [--posts-per-page 10]
-wpops settings update --data '{"show_on_front":"page"}'
+wpops settings update --data '{"show_on_front":"page"}'      # 或 --from-file settings.json
+wpops settings update --start-of-week 1 --language zh_CN     # 支持的字段见 wpops settings --help
 wpops types list|get <type>                        # 已注册文章类型(含 rest_base)
 wpops taxonomies list|get <tax>                    # 已注册分类法
 wpops statuses                                     # 文章状态

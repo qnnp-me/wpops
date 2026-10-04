@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { GROUPS, groupByName, isMutation, manifest, completionWords } from '../lib/spec.js';
-import { generalHelp, groupHelp, commandsJson } from '../lib/help.js';
+import { generalHelp, groupHelp, commandsJson, commandsText } from '../lib/help.js';
 import { dispatch } from '../lib/run.js';
 
 test('spec:别名都能解析到同一个组', () => {
@@ -12,6 +12,7 @@ test('spec:别名都能解析到同一个组', () => {
   assert.equal(groupByName('menu-item').name, 'menu-items');
   assert.equal(groupByName('global-style').name, 'global-styles');
   assert.equal(groupByName('revision').name, 'revisions');
+  assert.equal(groupByName('user').name, 'users');
   assert.equal(groupByName('nope'), null);
 });
 
@@ -29,6 +30,7 @@ test('spec:isMutation 覆盖组、别名与特殊组', () => {
   assert.equal(isMutation('batch', 'anything'), true);
   assert.equal(isMutation('raw', 'GET'), false);
   assert.equal(isMutation('raw', 'POST'), true);
+  assert.equal(isMutation('user', 'delete'), true);   // 别名(曾漏在 spec 之外)
   assert.equal(isMutation('nope', 'create'), false);
 });
 
@@ -64,6 +66,23 @@ test('help:每个组都有非空帮助;清单是合法 JSON', () => {
   assert.equal(groupHelp('nope'), null);
   assert.ok(generalHelp('1.0.0').includes('用法'));
   assert.doesNotThrow(() => JSON.parse(commandsJson('1.0.0')));
+});
+
+test('help:commandsText 是人类可读概览且含组/动作/写操作标记', () => {
+  const text = commandsText('1.0.0');
+  assert.match(text, /命令概览/);
+  for (const g of GROUPS) assert.ok(text.includes(g.name), `概览缺少组 ${g.name}`);
+  assert.match(text, /create\*/);            // posts 的写操作有 * 标记
+  assert.match(text, /list · get/);          // 动作清单
+  assert.equal(text.includes('{'), false);   // 不是 JSON
+});
+
+test('dispatch:无子动作的组拒绝多余动作(statuses)', async () => {
+  const client = { request: async () => ({ data: {}, headers: new Headers() }) };
+  await assert.rejects(
+    () => dispatch(client, { url: 'https://example.invalid' }, 'statuses', 'frobnicate', [], {}),
+    /不接受子命令/,
+  );
 });
 
 test('dispatch:每个组与别名都有分发(不出现"未知命令")', async () => {

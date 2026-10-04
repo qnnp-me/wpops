@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 import { existsSync, readFileSync, writeFileSync, rmSync, renameSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { loadEnv, listSites, configHome, migrateLegacyConfig } from '../lib/env.js';
+import { loadEnv, listSites, configHome, migrateLegacyConfig, assertSiteName } from '../lib/env.js';
 import { WpError } from '../lib/client.js';
 import { UsageError } from '../lib/errors.js';
 import { parseArgs, isMutation } from '../lib/args.js';
 import { installSkill, skillStale } from '../lib/skill.js';
 import { configureOutput } from '../lib/util.js';
 import { runOne } from '../lib/run.js';
-import { generalHelp, groupHelp, commandsJson, usageHint } from '../lib/help.js';
+import { generalHelp, groupHelp, commandsJson, commandsText, usageHint } from '../lib/help.js';
 import { completionWords, groupByName } from '../lib/spec.js';
 import { setup } from '../lib/commands.js';
 
@@ -52,7 +52,8 @@ function sitesCommand(action, rest) {
       return printSites();
     case 'show': {
       const name = rest[0];
-      if (!name) throw new Error('sites show 需要站点名');
+      if (!name) throw new UsageError('sites show 需要站点名', { group: 'sites', action: 'show' });
+      assertSiteName(name);
       const env = loadEnv(name);
       console.log(`站点 ${name}:`);
       for (const [key, value] of Object.entries(env)) {
@@ -62,7 +63,8 @@ function sitesCommand(action, rest) {
     }
     case 'rm': {
       const name = rest[0];
-      if (!name) throw new Error('sites rm 需要站点名');
+      if (!name) throw new UsageError('sites rm 需要站点名', { group: 'sites', action: 'rm' });
+      assertSiteName(name);
       const file = join(dir, `${name}.env`);
       if (!existsSync(file)) throw new Error(`找不到站点配置 ${file}`);
       rmSync(file);
@@ -71,7 +73,9 @@ function sitesCommand(action, rest) {
     }
     case 'rename': {
       const [from, to] = rest;
-      if (!from || !to) throw new Error('sites rename 需要 <旧名> <新名>');
+      if (!from || !to) throw new UsageError('sites rename 需要 <旧名> <新名>', { group: 'sites', action: 'rename' });
+      assertSiteName(from);
+      assertSiteName(to);
       const src = join(dir, `${from}.env`);
       const dst = join(dir, `${to}.env`);
       if (!existsSync(src)) throw new Error(`找不到站点配置 ${src}`);
@@ -81,7 +85,7 @@ function sitesCommand(action, rest) {
       return;
     }
     default:
-      throw new Error(`sites 未知子命令:${action}(list|show|rm|rename)`);
+      throw new UsageError(`sites 未知子命令:${action}(list|show|rm|rename)`, { group: 'sites', action });
   }
 }
 
@@ -91,17 +95,43 @@ function sitesCommand(action, rest) {
 async function withOutput(flags, fn) {
   const lines = [];
   const originalLog = console.log;
-  if (flags.quiet) console.log = () => {};
-  else if (flags.output) console.log = (...args) => lines.push(args.join(' '));
+  const originalWrite = process.stdout.write;
+  const capture = (args) => lines.push(args.map(String).join(' '));
+  if (flags.quiet) {
+    console.log = () => {};
+    process.stdout.write = () => true;
+  } else if (flags.output) {
+    console.log = (...args) => capture(args);
+    // 有些命令直接 process.stdout.write(如 `posts export` 输出正文),也要收进文件。
+    process.stdout.write = (chunk) => {
+      const text = String(chunk ?? '').replace(/\n$/, '');
+      if (text) lines.push(text);
+      return true;
+    };
+  }
   try {
     return await fn();
   } finally {
     console.log = originalLog;
+    process.stdout.write = originalWrite;
     if (!flags.quiet && flags.output && lines.length) {
       const file = resolve(String(flags.output));
       writeFileSync(file, lines.join('\n') + '\n', 'utf8');
       originalLog(`✓ 输出已写入 ${file}`);
     }
+  }
+}
+
+/** 本地命令(不走站点 REST)的统一入口:用法错误走 reportUsageError(退出码 2)。 */
+async function runLocal(flags, group, action, fn) {
+  try {
+    await withOutput(flags, fn);
+  } catch (err) {
+    if (err instanceof UsageError) {
+      reportUsageError(err, err.group || group, err.action ?? action);
+      return;
+    }
+    throw err;
   }
 }
 
@@ -141,7 +171,7 @@ function printCompletion(shell) {
       console.log(`# wpops PowerShell completion(用法:wpops completion powershell | Out-String | Invoke-Expression)\nRegister-ArgumentCompleter -Native -CommandName wpops -ScriptBlock {\n  param($wordToComplete)\n  "${words}".Split(' ') | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }\n}`);
       return;
     default:
-      throw new Error('completion 支持:bash|zsh|fish|powershell');
+      throw new UsageError(`completion 不支持 ${shell || '(空)'}(支持:bash|zsh|fish|powershell)`, { group: 'completion', action: shell });
   }
 }
 
@@ -168,7 +198,7 @@ async function main() {
       const text = groupHelp(helpGroup, helpAction);
       if (!text) {
         console.error(`未知命令组:${helpGroup}(运行 wpops help 查看全部)`);
-        process.exitCode = 1;
+        process.exitCode = 2;
         return;
       }
       console.log(text);
@@ -199,15 +229,15 @@ async function main() {
   }
 
   if (group === 'sites') {
-    await withOutput(flags, () => sitesCommand(action, rest));
+    await runLocal(flags, group, action, () => sitesCommand(action, rest));
     return;
   }
   if (group === 'setup') {
-    await setup(flags);
+    await runLocal(flags, group, action, () => setup(flags));
     return;
   }
   if (group === 'install-skill') {
-    await withOutput(flags, () => {
+    await runLocal(flags, group, action, () => {
       const dirs = installSkill();
       if (!dirs.length) {
         console.log('未安装 skill(可能已存在同名目录被跳过,或用 WPOPS_SKIP_SKILL 禁用)。');
@@ -218,11 +248,22 @@ async function main() {
     return;
   }
   if (group === 'completion') {
-    await withOutput(flags, () => printCompletion(action));
+    await runLocal(flags, group, action, () => printCompletion(action));
     return;
   }
   if (group === 'commands') {
-    await withOutput(flags, () => console.log(commandsJson(version())));
+    if (action && action !== 'list' && action !== 'show') {
+      reportUsageError(
+        new UsageError(`commands 未知子命令:${action}(list|show)`, { group, action }),
+        group,
+        action,
+      );
+      return;
+    }
+    // list(默认)= 人类可读概览;show 或 --json = 机器可读清单。
+    await withOutput(flags, () =>
+      console.log(action === 'show' || flags.json ? commandsJson(version()) : commandsText(version())),
+    );
     return;
   }
 

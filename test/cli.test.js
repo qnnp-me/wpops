@@ -47,6 +47,36 @@ test('CLI:--help → 退出码 0,帮助走 stdout', () => {
   assert.equal(r.stderr, '');
 });
 
+test('CLI:commands 默认输出人类可读概览', () => {
+  const r = run(['commands']);
+  assert.equal(r.status, 0);
+  assert.match(r.stdout, /命令概览/);
+  assert.match(r.stdout, /posts/);
+  assert.equal(r.stdout.includes('"groups"'), false);
+});
+
+test('CLI:commands show / --json 输出机器可读 JSON', () => {
+  for (const args of [['commands', 'show'], ['commands', '--json'], ['commands', 'list', '--json']]) {
+    const r = run(args);
+    assert.equal(r.status, 0, args.join(' '));
+    assert.doesNotThrow(() => JSON.parse(r.stdout), args.join(' '));
+  }
+});
+
+test('CLI:commands 未知动作 → 退出码 2', () => {
+  const r = run(['commands', 'frobnicate']);
+  assert.equal(r.status, 2);
+  assert.match(r.stderr, /未知子命令/);
+  assert.match(r.stderr, /list\|show/);
+});
+
+test('CLI:本地命令用法错误也走退出码 2', () => {
+  for (const args of [['sites', 'show'], ['sites', 'rm'], ['completion', 'foo'], ['help', 'nope']]) {
+    const r = run(args);
+    assert.equal(r.status, 2, args.join(' '));
+  }
+});
+
 test('CLI:publish 缺 id → 退出码 2', () => {
   const r = run(['posts', 'publish']);
   assert.equal(r.status, 2);

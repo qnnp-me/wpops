@@ -5,6 +5,25 @@
 
 ## [Unreleased]
 
+### Fixed
+- `wpops commands` 现在按 spec 声明的动作工作:`commands` / `commands list` 输出**人类可读概览**(组/动作/写操作标记),`commands show` 或 `commands --json` 输出机器可读 JSON;未知动作按用法错误处理(退出码 2)。此前无论带不带动作都只输出 JSON。
+- 多个查询参数此前被**静默丢弃**(声明了下划线键、而 CLI 存的是连字符键):`media list --media-type/--mime-type`、`pages list --menu-order`、`users list --role` 已修复。
+- 本地命令(`sites` / `completion` / `help <未知组>`)的用法错误现在也返回退出码 **2**(此前为 1),与文档约定一致。
+- `users` 的别名 `user` 补进 `lib/spec.js`:此前能用但不进补全/帮助,且 `--all user ...` 写操作**不触发 `--yes` 护栏**。
+- 未配置站点时不再抛 `Invalid URL`,改为可读提示「未配置站点地址(先运行 wpops setup…)」(退出码 1)。
+- `sites rm/rename` 增加站点名校验,避免 `../` 之类的路径穿越。
+- User-Agent 从写死的 `wpops/0.2` 改为读取实际包版本,不再随发版漂移。
+- 非数字 id(如 `posts get abc`)现在本地直接报用法错误(退出码 2),不再拼出 `.../NaN` 去撞服务端 404。覆盖 posts/pages/content/media/分类/评论/用户/菜单/菜单项/修订/区块/导航。
+- `--all-pages` 不再强制 `per_page=100`,会尊重调用方的 `--per-page`。
+- `content <rest_base> list` 现在套用通用筛选键(`--orderby/--order/--author/--after/--before/--slug/--parent/--menu-order/--exclude/--include/--offset`),此前自定义类型只透传 `--search/--status`。
+- `--quiet` / `--output <文件>` 现在也覆盖直接写 stdout 的输出(如 `posts export <id>` 不带 `--file` 时的正文)。
+- `statuses` 等无子动作的组拒绝多余动作,不再静默忽略。
+- `app-passwords list` 对非数组响应容错。
+
+### Changed
+- `wpops settings --help` 补齐实际支持的开关(`--from-file`、`--start-of-week`、`--language`、`--page-for-posts`、`--default-post-format`、`--default-ping-status`、`--default-comment-status`)。
+- `wpops health --help` / `commands --json` 现在也反映 `health <test>` 这个动作。
+
 ## [0.4.1] - 2026-10-05
 
 ### Changed

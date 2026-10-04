@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { deleteWidget, listSidebars } from '../lib/widgets.js';
-import { deleteAppPassword } from '../lib/app-passwords.js';
+import { deleteAppPassword, listAppPasswords } from '../lib/app-passwords.js';
 import { updateTemplate } from '../lib/templates.js';
 import { updateGlobalStyles } from '../lib/global-styles.js';
 
@@ -34,6 +34,16 @@ test('deleteAppPassword:dry-run 不发请求且无需 --force;缺 --force 报错
     restore();
   }
   await assert.rejects(() => deleteAppPassword(client, 'me', 'uuid-1', {}), /--force/);
+});
+
+test('listAppPasswords:非数组响应不崩溃(容错为空)', async () => {
+  const client = { request: async () => ({ data: { unexpected: true } }) };
+  const restore = silenceLog();
+  try {
+    await listAppPasswords(client, 'me', {});
+  } finally {
+    restore();
+  }
 });
 
 test('updateTemplate:缺 content 直接报错(即使 --dry-run)', async () => {

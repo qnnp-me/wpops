@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseDotenv } from '../lib/env.js';
-import { configProblems, WpError } from '../lib/client.js';
+import { configProblems, WpError, createClient } from '../lib/client.js';
 import { parseArgs, isMutation } from '../lib/args.js';
 import { readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -9,8 +9,9 @@ import { join } from 'node:path';
 import {
   deleteMenuItem, createMenuItem, listMenus, listMenuItems, listContent,
   editMediaImage, sideloadMedia, createContent, updateContent, setContentStatus, exportContent,
+  listMedia, listUsers, getContent,
 } from '../lib/commands.js';
-import { parseJson } from '../lib/util.js';
+import { parseJson, listRequest } from '../lib/util.js';
 
 test('parseDotenv:注释、引号、空值、去空格', () => {
   const vars = parseDotenv(
@@ -113,6 +114,87 @@ test('listMenuItems/listContent:列表实际调用 client.request(路径/方法�
   assert.equal(calls[0].opts.query.menus, '190');
   assert.equal(calls[1].method, 'GET');
   assert.equal(calls[1].path, '/wp-json/wp/v2/posts');
+});
+
+test('listMedia:--media-type/--mime-type 会进入查询(pick 兼容下划线键)', async () => {
+  const calls = [];
+  const client = { request: async (m, p, o) => { calls.push({ m, p, o }); return { data: [], headers: new Headers() }; } };
+  const log = console.log;
+  console.log = () => {};
+  try {
+    await listMedia(client, { 'media-type': 'image', 'mime-type': 'image/png' });
+  } finally {
+    console.log = log;
+  }
+  assert.equal(calls[0].o.query.media_type, 'image');
+  assert.equal(calls[0].o.query.mime_type, 'image/png');
+});
+
+test('listUsers:--role 映射到 REST 的 roles 查询参数', async () => {
+  const calls = [];
+  const client = { request: async (m, p, o) => { calls.push({ m, p, o }); return { data: [], headers: new Headers() }; } };
+  const log = console.log;
+  console.log = () => {};
+  try {
+    await listUsers(client, { role: 'administrator' });
+  } finally {
+    console.log = log;
+  }
+  assert.equal(calls[0].o.query.roles, 'administrator');
+});
+
+test('listContent pages:--menu-order 映射到 menu_order', async () => {
+  const calls = [];
+  const client = { request: async (m, p, o) => { calls.push({ m, p, o }); return { data: [], headers: new Headers() }; } };
+  const log = console.log;
+  console.log = () => {};
+  try {
+    await listContent(client, 'pages', { 'menu-order': '3' });
+  } finally {
+    console.log = log;
+  }
+  assert.equal(calls[0].o.query.menu_order, '3');
+});
+
+test('非数字 id:本地直接报用法错误,不拼出 /NaN 去撞服务端', async () => {
+  const client = { request: async () => { throw new Error('不应发请求'); } };
+  await assert.rejects(() => getContent(client, 'posts', 'abc', {}), /非法的 id/);
+  await assert.rejects(() => getContent(client, 'posts', '0', {}), /非法的 id/);
+});
+
+test('listContent 自定义类型:通用筛选键(--orderby)生效', async () => {
+  const calls = [];
+  const client = { request: async (m, p, o) => { calls.push({ m, p, o }); return { data: [], headers: new Headers() }; } };
+  const log = console.log;
+  console.log = () => {};
+  try {
+    await listContent(client, 'books', { orderby: 'date', order: 'desc' });
+  } finally {
+    console.log = log;
+  }
+  assert.equal(calls[0].o.query.orderby, 'date');
+  assert.equal(calls[0].o.query.order, 'desc');
+});
+
+test('listRequest --all-pages:尊重 --per-page(不再强制 100)', async () => {
+  const calls = [];
+  const client = {
+    request: async (m, p, o) => {
+      calls.push(o.query);
+      return { data: [{ id: 1 }], headers: new Headers({ 'x-wp-totalpages': '2' }) };
+    },
+  };
+  const { data } = await listRequest(client, '/x', { per_page: 5 }, { 'all-pages': true });
+  assert.equal(calls.length, 2); // 翻完 2 页
+  assert.equal(calls[0].per_page, 5);
+  assert.equal(calls[0].page, 1);
+  assert.equal(calls[1].page, 2);
+  assert.equal(data.length, 2);
+});
+
+test('client:未配置 URL 时给出可读错误(而非 Invalid URL)', async () => {
+  const { request } = createClient({ url: '', user: 'u', password: 'p', timeoutMs: 1000, retries: 0 });
+  await assert.rejects(() => request('GET', '/wp-json/'), /未配置站点地址/);
 });
 
 test('createContent:未指定 --status 时显式按草稿创建', async () => {
