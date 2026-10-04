@@ -5,6 +5,8 @@
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-10-05
+
 ### Fixed
 - `wpops commands` 现在按 spec 声明的动作工作:`commands` / `commands list` 输出**人类可读概览**(组/动作/写操作标记),`commands show` 或 `commands --json` 输出机器可读 JSON;未知动作按用法错误处理(退出码 2)。此前无论带不带动作都只输出 JSON。
 - 多个查询参数此前被**静默丢弃**(声明了下划线键、而 CLI 存的是连字符键):`media list --media-type/--mime-type`、`pages list --menu-order`、`users list --role` 已修复。

@@ -1,6 +1,6 @@
 {
   "name": "wpops",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "WordPress REST operations toolkit — manage posts, pages, media, menus, comments, users, custom types, revisions, blocks, templates, widgets, settings and plugins from the CLI. Multi-site, safety-first, zero dependencies.",
   "license": "MIT",
   "author": "qnnp",
