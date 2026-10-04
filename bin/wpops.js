@@ -71,8 +71,14 @@ function printHelp() {
   --search <s>        搜索
   --title/--content   标题/正文
   --from-file <path>  正文取自文件
+  --slug <s>          别名(slug)
+  --excerpt <s>       摘要
   --categories 1,2    分类 ID
   --tags 3,4          标签 ID
+  --alt <文本>        图片替代文本(media upload)
+  --force             彻底删除(delete,默认进回收站)
+  --activate          安装后立即启用(plugins install)
+  --data <JSON>       raw 的请求体
   --json              输出原始 JSON
 
 示例:
@@ -90,7 +96,7 @@ function printSites() {
   const sites = listSites();
   if (!sites.length) {
     console.log('还没有配置任何站点。');
-    console.log('把 .env.example 复制成 .env(默认站),或在 sites/ 下建 <名字>.env。');
+    console.log('把 .env.example 复制成 sites/<名字>.env,填入该站凭据。');
     return;
   }
   console.log(`已配置 ${sites.length} 个站点:`);
