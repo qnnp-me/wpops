@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readFileSync } from 'node:fs';
 import { loadEnv, listSites } from '../lib/env.js';
 import { buildConfig, createClient, WpError } from '../lib/client.js';
 import { parseArgs, isMutation } from '../lib/args.js';
@@ -9,10 +10,20 @@ function printJson(value) {
   console.log(JSON.stringify(value, null, 2));
 }
 
+function version() {
+  try {
+    return JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
+  } catch {
+    return 'unknown';
+  }
+}
+
 function printHelp() {
   console.log(`wpops —— WordPress REST 操作工具
 
 用法: wpops [--site 名字 | --all] <组> <动作> [参数] [--flags]
+
+  --version / -v                  显示版本
 
   setup                           交互式配置一个站点(写入 sites/<名字>.env 并体检)
   doctor                          连接与权限体检(先跑这个)
@@ -261,6 +272,10 @@ async function main() {
   const { positionals, flags } = parseArgs(process.argv.slice(2));
   const [group, action, ...rest] = positionals;
 
+  if (flags.version) {
+    console.log(version());
+    return;
+  }
   if (!group || group === 'help' || flags.help) {
     printHelp();
     return;

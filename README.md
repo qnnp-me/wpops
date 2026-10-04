@@ -1,5 +1,10 @@
 # wpops
 
+[![npm version](https://img.shields.io/npm/v/wpops.svg)](https://www.npmjs.com/package/wpops)
+[![npm downloads](https://img.shields.io/npm/dm/wpops.svg)](https://www.npmjs.com/package/wpops)
+[![license](https://img.shields.io/npm/l/wpops.svg)](LICENSE)
+[![node](https://img.shields.io/node/v/wpops.svg)](package.json)
+
 > WordPress REST operations toolkit — a zero-dependency CLI (plus agent skill) to manage posts, pages, media, comments, users and plugins across one or many sites.
 
 WordPress REST 操作工具。只依赖 Node 内置能力(无第三方包),用应用密码通过
@@ -33,7 +38,20 @@ cd wpops
 ./install.ps1          # Windows;macOS/Linux 用 sh install.sh(装 CLI + skill)
 ```
 
-不 clone 也行:`pnpm add -g github:qnnp-me/wpops`,再加
+不想 clone?一行流(脚本不在仓库内时会自动 `git clone`):
+
+```powershell
+iwr -useb https://raw.githubusercontent.com/qnnp-me/wpops/main/install.ps1 | iex   # Windows
+```
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/qnnp-me/wpops/main/install.sh | sh    # macOS/Linux
+```
+
+> 若 `raw.githubusercontent.com` 访问不了,可换 jsDelivr 镜像:
+> `https://cdn.jsdelivr.net/gh/qnnp-me/wpops@main/install.ps1`(或 `.sh`)。
+
+也可以直接用 git 依赖:`pnpm add -g github:qnnp-me/wpops`,再加
 `npx skills add qnnp-me/wpops --skill wpops -a opencode -g`。
 
 **发布(维护者)**
