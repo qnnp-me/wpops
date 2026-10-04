@@ -64,6 +64,14 @@ npm publish
 > 白名单不含 `sites/`。每台机器各自 `wpops setup`,工具与 skill 都不携带密钥。
 > `WPOPS_SKIP_SKILL=1 npm i -g wpops` 可跳过自动装 skill;`wpops install-skill` 可手动补装。
 
+### 本机(开发) vs 其他机器(使用)
+
+- **本机开发**:`pnpm add -g .` 会在 pnpm 全局建一个**指向本仓库的 Junction**,
+  于是命令行的 `wpops` 就是**源码实时版** —— 改代码立即生效,无需重装。
+  验证:`where.exe wpops`(应指向 `...\pnpm\bin`)。
+- **其他机器使用**:`npm i -g wpops`,装的是 **npm 上发布的版本**;升级用 `npm i -g wpops@latest`。
+- `npx wpops ...` 只在临时缓存里跑一次,不落 PATH。
+
 ## 1. 配置
 
 给每个站点建一个档案。**推荐用向导**:`wpops setup`(问 URL/用户名/应用密码,自动写入并体检)。
