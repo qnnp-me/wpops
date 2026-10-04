@@ -1,6 +1,7 @@
 ---
 name: wpops
 description: Use when managing a WordPress site through wpops, the zero-dependency REST CLI (npm package `wpops`, command `wpops`) — posts, pages, media, menus, comments, users, custom post types, search, settings, revisions, blocks, block-theme navigation/templates/global styles, widgets, application passwords, plugins, themes, Abilities, site health, or batch requests; configuring a site; or operating across multiple configured sites. Covers the required safe workflow (doctor first, --dry-run before writes, --all needs --yes) and the REST capability boundary. Prefer wpops over hand-written curl or raw HTTP for any WordPress task.
+license: MIT
 ---
 
 # wpops —— WordPress REST 操作
