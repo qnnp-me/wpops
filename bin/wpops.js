@@ -65,7 +65,7 @@ function printHelp() {
   --name/--parent/--description   分类/标签字段
   --menus <id> · --menu-order N   菜单项所属菜单 / 排序
   --object/--object-id            菜单项指向的对象(如 page 4976)
-  --attr-title/--classes/--target 菜单项属性
+  --attr-title/--classes/--target/--xfn  菜单项属性
   --username/--email/--role       用户字段
   --force                         彻底删除 / 危险操作确认
   --data <JSON>                   raw 的请求体

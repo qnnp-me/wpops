@@ -154,7 +154,8 @@ wpops menu-items get <id>
 wpops menu-items create --title "Projects" --url https://example.com/projects --menus 190 --menu-order 6
 wpops menu-items create --title "Projects" --menus 190 --type post_type --object page --object-id 4976
 wpops menu-items update <id> --menu-order 3 [--parent 4979] [--target _blank]
-wpops menu-items delete <id> --force              # 菜单项删除不可撤销,必须 --force
+wpops menu-items delete <id> --dry-run            # 预览不需要 --force
+wpops menu-items delete <id> --force              # 真正删除才必须 --force(不可撤销)
 
 # 插件 / 主题(见下方能力说明)
 wpops plugins list [--status active] [--search 关键词]
@@ -228,7 +229,7 @@ wpops --all plugins list      # 巡检所有站的插件
 
 - `sites/*.env` 存放应用密码,等同于该账号登录凭据;专用账号 + 可随时在后台吊销。
 - 应用密码要求 HTTPS。
-- **写操作前先 `--dry-run` 预览**;破坏性操作(`delete --force`、分类/用户/菜单项删除)另需 `--force`。
+- **写操作前先 `--dry-run` 预览**(`delete` 的预览不需要 `--force`);真正执行破坏性删除(`delete --force`、分类/用户/菜单项删除)才必须加 `--force`。
 - **`--all` 的写操作必须加 `--yes`**,否则直接拒绝,避免手滑波及全线。
 - 网络抖动/429/5xx 会自动重试(默认 2 次,幂等方法才重试网络错误)。
 - 这是本地脚本,不对外开端口。

@@ -22,7 +22,7 @@ description: Use when managing a WordPress site through wpops, the REST CLI (npm
 
 ## 安全流程(必须遵守)
 1. 首次操作某站先跑 `wpops doctor`(检查连接与权限;失败返回非 0)。
-2. 任何写操作先加 `--dry-run` 预览目标与内容。
+2. 任何写操作先加 `--dry-run` 预览目标与内容(`delete` 的预览不需要 `--force`;真正删除才加 `--force`)。
 3. `--all` 的**写操作必须加 `--yes`**,否则会被拒绝。
 4. 需要程序化解析输出时加 `--json`。
 5. 应用密码绝不写进命令、日志或对话。
@@ -51,7 +51,7 @@ wpops raw <METHOD> <path> [--data JSON]       # 兜底:任意端点
 - **REST 做不到**:插件/主题/核心**更新**、备份/还原、安全扫描、性能优化、文件系统操作。
   → 这些需要 WP-CLI + SSH,或 MainWP。详见 skill `wp-wpcli-and-ops`。
 - **能做的**:文章/页面/媒体/分类/标签/评论/用户/导航菜单的增删改查、插件安装与启停、主题切换、连接与权限体检。
-- **菜单接口是插件提供的**(WordPress 核心 REST 没有 `/menus`、`/menu-items`);若目标站返回 404,说明未装对应插件,需回退到 `wpops raw` 或后台操作。
+- **菜单接口是插件提供的**(WordPress 核心 REST 没有 `/menus`、`/menu-items`);路由不存在时 wpops 会提示"需插件",此时回退到 `wpops raw` 或后台操作。
 
 ## 相关 skill
 `wp-rest-api`(REST 端点)、`wp-wpcli-and-ops`(WP-CLI/SSH 运维)、`wp-performance`(性能)、`wordpress-router`(项目分类入口)。

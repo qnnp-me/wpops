@@ -1,8 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseDotenv } from '../lib/env.js';
-import { configProblems } from '../lib/client.js';
+import { configProblems, WpError } from '../lib/client.js';
 import { parseArgs, isMutation } from '../lib/args.js';
+import { deleteMenuItem, createMenuItem, listMenus } from '../lib/commands.js';
 
 test('parseDotenv:注释、引号、空值、去空格', () => {
   const vars = parseDotenv(
@@ -59,4 +60,30 @@ test('isMutation:区分读写', () => {
   assert.equal(isMutation('raw', 'GET'), false);
   assert.equal(isMutation('raw', 'POST'), true);
   assert.equal(isMutation('doctor'), false);
+});
+
+test('menu-items:--dry-run 预览不依赖 --force,且不发请求;真实删除仍要 --force', async () => {
+  const client = { request: async () => { throw new Error('不应发请求'); } };
+  const originalLog = console.log;
+  console.log = () => {};
+  try {
+    // dry-run:只预览,不需要 --force,也不调用 client
+    await deleteMenuItem(client, 42, { 'dry-run': true });
+    await createMenuItem(client, { title: 'x', url: 'https://e', menus: 7, 'dry-run': true });
+  } finally {
+    console.log = originalLog;
+  }
+  // 真实删除仍必须 --force
+  await assert.rejects(() => deleteMenuItem(client, 42, {}), /--force/);
+  // 缺少 --title 直接报错
+  await assert.rejects(() => createMenuItem(client, { 'dry-run': true }), /--title/);
+});
+
+test('menus:路由缺失(rest_no_route)时提示需插件', async () => {
+  const client = {
+    request: async () => {
+      throw new WpError('404 未找到路由', { status: 404, code: 'rest_no_route' });
+    },
+  };
+  await assert.rejects(() => listMenus(client, {}), /插件/);
 });
