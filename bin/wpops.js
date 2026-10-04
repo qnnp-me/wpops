@@ -40,6 +40,8 @@ function printHelp() {
   tags       list|get|create|update|delete ...
   comments   list|get|update|delete ...
   users      list|get|create|update|delete|me ...
+  menus      list|get ...
+  menu-items list|get|create|update|delete ...
   raw <METHOD> <path> [--data JSON]   任意端点兜底
 
 多站点:
@@ -61,6 +63,9 @@ function printHelp() {
   --featured-media <id>           特色图
   --alt <文本> · --caption <文本> 媒体替代文本 / 说明
   --name/--parent/--description   分类/标签字段
+  --menus <id> · --menu-order N   菜单项所属菜单 / 排序
+  --object/--object-id            菜单项指向的对象(如 page 4976)
+  --attr-title/--classes/--target 菜单项属性
   --username/--email/--role       用户字段
   --force                         彻底删除 / 危险操作确认
   --data <JSON>                   raw 的请求体
@@ -74,6 +79,9 @@ function printHelp() {
   wpops media update 44 --alt "配图"
   wpops categories list
   wpops comments list --status hold
+  wpops menus list
+  wpops menu-items list --menus 190
+  wpops menu-items create --title Projects --url https://qnnp.me/projects --menus 190 --menu-order 6
   wpops --all posts list
   wpops --all plugins list
   wpops --all posts delete 5 --dry-run
@@ -259,6 +267,37 @@ async function runOne(site, group, action, rest, flags, showHeader) {
           return cmd.deleteUser(client, needFirst('delete'), flags);
         default:
           throw new Error(`users 未知子命令:${action}`);
+      }
+    case 'menus':
+    case 'menu':
+      switch (action) {
+        case undefined:
+        case 'list':
+          return cmd.listMenus(client, flags);
+        case 'get':
+          return cmd.getMenu(client, needFirst('get'), flags);
+        default:
+          throw new Error(`menus 未知子命令:${action}`);
+      }
+    case 'menu-items':
+    case 'menu-item':
+      switch (action) {
+        case undefined:
+        case 'list':
+          return cmd.listMenuItems(client, flags);
+        case 'get':
+          return cmd.getMenuItem(client, needFirst('get'), flags);
+        case 'create':
+        case 'new':
+          return cmd.createMenuItem(client, flags);
+        case 'update':
+        case 'edit':
+          return cmd.updateMenuItem(client, needFirst('update'), flags);
+        case 'delete':
+        case 'rm':
+          return cmd.deleteMenuItem(client, needFirst('delete'), flags);
+        default:
+          throw new Error(`menu-items 未知子命令:${action}`);
       }
     case 'raw':
       if (!action || !rest[0]) throw new Error('raw 用法:wpops raw <METHOD> <path> [--data JSON]');

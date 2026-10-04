@@ -51,6 +51,11 @@ test('isMutation:区分读写', () => {
   assert.equal(isMutation('media', 'upload'), true);
   assert.equal(isMutation('themes', 'activate'), true);
   assert.equal(isMutation('categories', 'create'), true);
+  assert.equal(isMutation('menus', 'list'), false);
+  assert.equal(isMutation('menus', undefined), false);
+  assert.equal(isMutation('menu-items', 'create'), true);
+  assert.equal(isMutation('menu-items', 'delete'), true);
+  assert.equal(isMutation('menu-items', 'list'), false);
   assert.equal(isMutation('raw', 'GET'), false);
   assert.equal(isMutation('raw', 'POST'), true);
   assert.equal(isMutation('doctor'), false);

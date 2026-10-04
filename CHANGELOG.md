@@ -5,6 +5,18 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-04
+
+### Added
+- 导航菜单一级命令:
+  - `wpops menus list|get`(显示 id / name / slug / locations)。
+  - `wpops menu-items list|get|create|update|delete`,支持 `--menus`、`--menu-order`、`--parent`、`--status`、`--type`、`--object`、`--object-id`、`--url`、`--target`、`--classes`、`--attr-title`;`delete` 需 `--force`。
+- 所有菜单写命令支持 `--dry-run`;`--all` 护栏识别菜单写操作。
+- 注:`/menus`、`/menu-items` 由站点插件提供,不是 WordPress 核心 REST 的一部分。
+
+### Changed
+- README 命令清单/能力表与内置 skill 速查补充菜单用法。
+
 ## [0.1.1] - 2026-10-04
 
 ### Added
@@ -28,6 +40,7 @@
 - 内置 agent skill(`skills/wpops/SKILL.md`)。
 - 配置目录支持 `WPOPS_HOME` 覆盖。
 
-[Unreleased]: https://github.com/qnnp-me/wpops/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/qnnp-me/wpops/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/qnnp-me/wpops/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/qnnp-me/wpops/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/qnnp-me/wpops/releases/tag/v0.1.0

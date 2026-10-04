@@ -5,7 +5,7 @@
 [![license](https://img.shields.io/npm/l/wpops.svg)](LICENSE)
 [![node](https://img.shields.io/node/v/wpops.svg)](package.json)
 
-> WordPress REST operations toolkit — a zero-dependency CLI (plus agent skill) to manage posts, pages, media, comments, users and plugins across one or many sites.
+> WordPress REST operations toolkit — a zero-dependency CLI (plus agent skill) to manage posts, pages, media, comments, users, navigation menus and plugins across one or many sites.
 
 WordPress REST 操作工具。只依赖 Node 内置能力(无第三方包),用应用密码通过
 `/wp-json/` 管理站点内容与插件。
@@ -146,6 +146,16 @@ wpops users  update <id> --role editor
 wpops users  delete <id> --force [--reassign 1]   # 有内容的用户需指定内容转交人
 wpops users  me
 
+# 导航菜单(接口由插件提供;核心 REST 没有)
+wpops menus  list [--per-page 100]                # 列出菜单(id / name / slug / locations)
+wpops menus  get <id>
+wpops menu-items list [--menus 190] [--search 词] [--per-page 100] [--page 1]
+wpops menu-items get <id>
+wpops menu-items create --title "Projects" --url https://example.com/projects --menus 190 --menu-order 6
+wpops menu-items create --title "Projects" --menus 190 --type post_type --object page --object-id 4976
+wpops menu-items update <id> --menu-order 3 [--parent 4979] [--target _blank]
+wpops menu-items delete <id> --force              # 菜单项删除不可撤销,必须 --force
+
 # 插件 / 主题(见下方能力说明)
 wpops plugins list [--status active] [--search 关键词]
 wpops plugins install <wordpress.org 别名> [--activate]
@@ -201,6 +211,7 @@ wpops --all plugins list      # 巡检所有站的插件
 | 事项 | 核心 REST 能做到吗 |
 |---|---|
 | 文章 / 页面 / 媒体 / 分类 / 标签 / 评论 / 用户的增删改查 | ✅ 完整 |
+| 导航菜单 / 菜单项(列表、增删改) | ⚠️ 需站点装有暴露 `/menus`、`/menu-items` 的插件 |
 | 插件:列出、**安装**(按 wp.org 别名)、启用/停用、删除 | ✅ |
 | 插件:**更新已装插件代码** | ❌ 核心 REST 没有该端点 |
 | 主题:列出、切换 | ✅ |
@@ -217,7 +228,7 @@ wpops --all plugins list      # 巡检所有站的插件
 
 - `sites/*.env` 存放应用密码,等同于该账号登录凭据;专用账号 + 可随时在后台吊销。
 - 应用密码要求 HTTPS。
-- **写操作前先 `--dry-run` 预览**;破坏性操作(`delete --force`、分类/用户删除)另需 `--force`。
+- **写操作前先 `--dry-run` 预览**;破坏性操作(`delete --force`、分类/用户/菜单项删除)另需 `--force`。
 - **`--all` 的写操作必须加 `--yes`**,否则直接拒绝,避免手滑波及全线。
 - 网络抖动/429/5xx 会自动重试(默认 2 次,幂等方法才重试网络错误)。
 - 这是本地脚本,不对外开端口。
