@@ -16,7 +16,7 @@ WordPress REST 操作工具。只依赖 Node 内置能力(无第三方包),用�
 **A. 从 Git 仓库(推荐,个人 / 小范围)**
 
 ```powershell
-git clone https://github.com/<你>/wpops.git
+git clone https://github.com/qnnp-me/wpops.git
 cd wpops
 ./install.ps1          # Windows;macOS/Linux 用 sh install.sh
 ```
@@ -27,8 +27,8 @@ cd wpops
 不 clone 也行:
 
 ```powershell
-pnpm add -g github:<你>/wpops
-npx skills add <你>/wpops --skill wpops -a opencode -g
+pnpm add -g github:qnnp-me/wpops
+npx skills add qnnp-me/wpops --skill wpops -a opencode -g
 ```
 
 **B. 发布到 npm(可选,`npx wpops` 免安装)**
