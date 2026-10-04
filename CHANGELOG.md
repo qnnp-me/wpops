@@ -32,6 +32,7 @@
 - `batch` 明确拒绝 GET(核心 `/batch/v1` 只支持 POST/PUT/PATCH/DELETE),并兼容裸数组与 `{"requests":[...]}` 两种写法。
 
 ### Changed
+- 用法/参数错误统一处理:stderr 打印「错误 + 精简用法 + `wpops <组> --help` 提示」,退出码 **2**;运行期错误仍为 **1**;显式 `--help` 仍走 stdout、退出码 **0**;`--all` 遇用法错误立即中止(不逐站重复)。
 - 内置 skill 改为**自洽薄索引**:只保留安全流程、能力索引与"现查现用"指引,不再引用其他 skill;精确字段改为运行时向 CLI(`--help` / `commands --json` / `raw OPTIONS`)查询。
 - README 命令清单/能力表补充上述用法,并说明 `--dry-run` 预览与 `--force` 的关系,以及"帮助由 spec 生成、不会漂移"。
 

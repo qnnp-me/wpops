@@ -28,6 +28,7 @@ description: Use when managing a WordPress site through wpops, the zero-dependen
 4. 需要程序化解析输出时加 `--json`;要投影/表格用 `--fields a,b` / `--csv` / `--table`。
 5. 应用密码绝不写进命令、日志或对话。
 6. 破坏性操作(`delete --force`、分类/用户/菜单项/插件删除)先确认目标存在且正确。
+7. 退出码:`0` 成功;`2` 用法/参数错误(stderr 会给用法与 `--help` 提示);`1` 运行期错误(HTTP/网络/配置)。脚本据此判断成败,不要只看有没有输出。
 
 ## 现查现用(不要背细节)
 - `wpops <组> --help`、`wpops help <组> [动作]` — 该组动作与参数(**首选**)。

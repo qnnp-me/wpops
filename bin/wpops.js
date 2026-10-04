@@ -3,12 +3,13 @@ import { existsSync, readFileSync, writeFileSync, rmSync, renameSync } from 'nod
 import { join, resolve } from 'node:path';
 import { loadEnv, listSites, configHome } from '../lib/env.js';
 import { WpError } from '../lib/client.js';
+import { UsageError } from '../lib/errors.js';
 import { parseArgs, isMutation } from '../lib/args.js';
 import { installSkill } from '../lib/skill.js';
 import { configureOutput } from '../lib/util.js';
 import { runOne } from '../lib/run.js';
-import { generalHelp, groupHelp, commandsJson } from '../lib/help.js';
-import { completionWords } from '../lib/spec.js';
+import { generalHelp, groupHelp, commandsJson, usageHint } from '../lib/help.js';
+import { completionWords, groupByName } from '../lib/spec.js';
 import { setup } from '../lib/commands.js';
 
 function version() {
@@ -102,6 +103,24 @@ async function withOutput(flags, fn) {
       originalLog(`✓ 输出已写入 ${file}`);
     }
   }
+}
+
+// ------------------------------------------------------------------ 用法错误
+
+/** 用法错误:stderr 打印「消息 + 精简用法 + --help 提示」,退出码 2(与运行期错误的 1 区分)。 */
+function reportUsageError(err, group, action) {
+  console.error(`✗ ${err.message}`);
+  const lines = usageHint(group, action);
+  if (lines.length) {
+    console.error('用法:');
+    for (const line of lines) console.error(`  ${line}`);
+  }
+  if (group && groupByName(group)) {
+    console.error(`提示:wpops ${group} --help 查看完整用法`);
+  } else {
+    console.error('提示:wpops help 查看全部命令');
+  }
+  process.exitCode = 2;
 }
 
 // ------------------------------------------------------------------ completion
@@ -199,19 +218,33 @@ async function main() {
   if (targets) {
     if (!targets.length) throw new Error('还没有配置任何站点');
     if (isMutation(group, action) && !flags.yes && !flags['dry-run']) {
-      throw new Error('批量执行会作用于多个站点。写操作请加 --yes 确认,或先用 --dry-run 预览。');
+      reportUsageError(
+        new UsageError('批量执行会作用于多个站点。写操作请加 --yes 确认,或先用 --dry-run 预览。', { group, action }),
+        group,
+        action,
+      );
+      return;
     }
     let failures = 0;
+    let usageError = null;
     await withOutput(flags, async () => {
       for (const target of targets) {
         try {
           await runOne(target.name, group, action, rest, flags, true);
         } catch (err) {
+          if (err instanceof UsageError) {
+            usageError = err; // 用法与站点无关:立即中止,不逐站重复
+            return;
+          }
           failures++;
           console.error(`✗ [${target.label}] ${err.message}`);
         }
       }
     });
+    if (usageError) {
+      reportUsageError(usageError, usageError.group || group, usageError.action ?? action);
+      return;
+    }
     if (failures) {
       console.error(`\n完成:${failures}/${targets.length} 个站点出错。`);
       process.exitCode = 1;
@@ -219,10 +252,23 @@ async function main() {
     return;
   }
 
-  await withOutput(flags, () => runOne(single, group, action, rest, flags, false));
+  try {
+    await withOutput(flags, () => runOne(single, group, action, rest, flags, false));
+  } catch (err) {
+    if (err instanceof UsageError) {
+      reportUsageError(err, err.group || group, err.action ?? action);
+      return;
+    }
+    throw err;
+  }
 }
 
 main().catch((err) => {
+  if (err instanceof UsageError) {
+    console.error(`✗ ${err.message}`);
+    console.error('提示:wpops help 查看全部命令');
+    process.exit(2);
+  }
   if (err instanceof WpError) {
     console.error(`✗ ${err.message}`);
     if (err.code) console.error(`  代码:${err.code}`);

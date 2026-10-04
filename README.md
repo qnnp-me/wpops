@@ -111,6 +111,8 @@ node bin/wpops.js doctor
 
 > **现查现用**:`wpops help <组>` 或 `wpops <组> --help` 看某组动作与参数;`wpops commands --json` 拿机器可读清单(全部组/动作/是否写操作)。
 > 帮助与清单都由 `lib/spec.js` 单一事实来源生成,不会和实现漂移。
+>
+> **退出码**:`0` 成功;`2` 用法/参数错误(stderr 打印错误 + 精简用法 + `--help` 提示);`1` 运行期错误(HTTP/网络/配置)。`--help` 始终走 stdout 且为 `0`。
 
 ```
 # 内容
